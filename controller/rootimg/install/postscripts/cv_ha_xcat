@@ -37,6 +37,7 @@ pcs -f config constraint colocation add grp_xCAT fs_drbd
 pcs -f config constraint colocation add conserver grp_xCAT 500
 
 pcs -f config constraint order start fs_drbd then start symlinks_xCAT
+pcs -f config constraint order start ip then start named-clone
 pcs -f config constraint order start symlinks_xCAT then start grp_xCAT
 pcs -f config constraint order start symlinks_xCAT then start conserver
 
@@ -47,13 +48,8 @@ echo pcs resource cleanup | at now +5 minutes
 systemctl enable pacemaker
 systemctl enable corosync
 
-#Make xCAT available via the floating IP.
-if grep -v XCATHOST /etc/profile.d/xcat.sh; then
-    echo "export XCATHOST=controller.cluster:3001" >> /etc/profile.d/xcat.sh
-fi
-
-for i in {30..0}; do
-    if pcs resource | grep "lsb:xcatd" | grep "Started $(hostname)"; then
+for i in {300..0}; do
+    if pcs resource | grep "lsb:xcatd" | grep "Started"; then
         break
     fi
     echo waiting for xCAT to come up

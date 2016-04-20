@@ -23,7 +23,7 @@ dev=$(ip route | grep 10.141.0.0/16 | awk '{print $3}')
 pcs cluster cib config
 pcs -f config property set no-quorum-policy=ignore
 pcs -f config resource op defaults timeout="120s"
-pcs -f config resource defaults resource-stickyness=100
+pcs -f config resource defaults resource-stickiness=100
 
 # FIXME: we set this to false for now. Later in the installation process we will enable fencing.
 pcs -f config property set stonith-enabled=false
@@ -40,7 +40,7 @@ pcs -f config constraint colocation add master ms_drbd with ip INFINITY
 pcs -f config constraint order promote ms_drbd then start fs_drbd
 
 # Give the first node a slight preference.
-pcs -f config constraint location ip prefers controller-1.cluster=100
+pcs -f config constraint location ip prefers controller-1.cluster=50
 
 pcs cluster cib-push config
 

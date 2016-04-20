@@ -1,5 +1,0 @@
-[Unit]
-Description=Run smith.service every 1 minute
-
-[Timer]
-OnCalendar=*:0/1

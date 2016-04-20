@@ -58,6 +58,7 @@ sed -e "s/<TENANT>/${FIRST_TENANT}/g" \
     -e "s/<OPENSTACK>/$(hostname -I | awk '{print $1}')/g" \
     /trinity/openstack/keystonerc > /root/keystonerc_${FIRST_TENANT}
 
+chmod go-rw /root/keystonerc_${FIRST_TENANT} 
 # Copy to failover node (not pretty)
 scp /root/keystonerc_${FIRST_TENANT} controller-2.cluster:/root/keystonerc_${FIRST_TENANT}
 source /root/keystonerc_${FIRST_TENANT}

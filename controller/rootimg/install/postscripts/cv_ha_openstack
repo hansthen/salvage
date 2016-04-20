@@ -13,12 +13,12 @@
 systemctl start galera
 
 mysql=( mysql --protocol=tcp -uroot )
-for i in {30..0}; do
+for i in {300..0}; do
     if echo 'SELECT 1' | "${mysql[@]}" &> /dev/null; then
         break
     fi
     echo 'MySQL init process in progress...'
-    sleep 1
+    sleep 3
 done
 if [ "$i" = 0 ]; then
     echo >&2 'MySQL init process failed.'
@@ -66,13 +66,15 @@ pcs -f config resource create glance systemd:glance op monitor interval="37s"
 pcs -f config resource create nova-controller systemd:nova-controller op monitor interval="37s"
 
 pcs -f config resource group add grp_OpenStack rabbitmq keystone glance nova-controller
+#pcs -f config resource clone grp_OpenStack clone-node-max=1 notify=false
+
 pcs -f config constraint colocation add grp_OpenStack ip
-pcs -f config constraint order start fs_drbd then start galera
+# pcs -f config constraint order start fs_drbd then start galera
 # This is only required when we run xCAT from inside galera
-#pcs -f config constraint order start galera then start xCAT
-pcs -f config constraint order start galera then start keystone
-pcs -f config constraint order start keystone then start glance
-pcs -f config constraint order start keystone then start nova-controller
+# pcs -f config constraint order start galera then start xCAT
+pcs -f config constraint order start galera-clone then start grp_OpenStack
+#pcs -f config constraint order start keystone then start glance
+#pcs -f config constraint order start keystone then start nova-controller
 
 pcs cluster cib-push config
 
@@ -80,7 +82,7 @@ pcs cluster cib-push config
 # Create keystone endpoints for glance etc
 #--------------------------------------------------------------------------
 keystone_endpoint="http://controller.cluster:35357/v2.0"
-for i in {60..0}; do
+for i in {300..0}; do
     if curl -s ${keystone_endpoint}; then 
         /tmp/trinity/keystone/keystone-setup.sh
         /tmp/trinity/keystone/glance-setup.sh
@@ -89,25 +91,32 @@ for i in {60..0}; do
         break
     fi
     echo "Waiting for keystone to come up!"
-    sleep 60
+    sleep 5
 done
 [[ ${i} == 0 ]] && echo "Timeout waiting for keystone to come up"
 
-read ETH0 ETH1 ETH2 <<<$(ls /sys/class/net/ | grep "^e" | sort | head -3)
+#read ETH0 ETH1 ETH2 <<<$(ls /sys/class/net/ | grep "^e" | sort | head -3)
+ETH1=$(ip route get 8.8.8.8 | grep -oP 'dev \K\S+')
+ETH2=$(ip route get 10.141.0.0 | grep -oP 'dev \K\S+')
+
 BRIDGE="br100"
-PRI_NIC=${ETH1}
+PRI_NIC=${ETH2}
 source /etc/profile.d/xcat.sh
 sed -e "s/<TENANT>/admin/g" \
     -e "s/<USER>/admin/g" \
     -e "s/<PASSWORD>/system/g" \
     -e "s/<OPENSTACK>/10.141.255.254/g" \
     /trinity/openstack/keystonerc > /root/keystonerc_admin
+chmod go-rw /root/keystonerc_admin
+scp /root/keystonerc_admin controller-2.cluster:/root/keystonerc_admin
 source /root/keystonerc_admin
 
-sed -e "s/eno2/${ETH1}/g" \
+sed -e "s/eno2/${ETH2}/g" \
     -i /etc/trinity/trinity_api.conf
 
 #-- Create the Flat Network
+systemctl start openstack-nova-network
+
 NETWORK_LABEL="novanetwork"
 nova network-create \
        --fixed-range-v4 192.168.32.0/24 \

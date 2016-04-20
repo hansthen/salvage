@@ -1,4 +1,11 @@
 #!/bin/bash
+##description    : Starts galera cluster
+##                 The primary node will first try to connect to an active cluster. If there is no
+##                 cluster currently active, it will restart itself in bootstrap mode, forming
+##                 an the first node of the primary component itself.
+##author         : Hans Then
+##email          : hans.then@clustervision.com
+
 set -x
 # if command starts with an option, prepend mysqld
 if [ "${1:0:1}" = '-' ]; then
@@ -28,12 +35,13 @@ if hostname -I | grep ${NODES[0]}; then
     echo PID ${pid}
 
     for i in {30..0}; do
-        sleep 3 
+        sleep 1 
         grep "WSREP: New cluster view:" /tmp/mysql.log && break
     done
     ps -ef
     kill -SIGTERM ${pid}
     for i in {30..0}; do
+       sleep 1
        kill -s 0 ${pid} || break
     done
     ps -ef

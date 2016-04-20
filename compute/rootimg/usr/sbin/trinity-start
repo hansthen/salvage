@@ -5,34 +5,27 @@ brctl delbr docker0 2>/dev/null || true
 # Determine our container name
 NAME=$(hostname -s | sed s/node/c/)
 
-while [ 1 ]; do 
+while : ; do 
     # Determine in which virtual cluster this node is active
-    #for VC in vc-{a..l}; do
     for VC in $(ls /cluster | grep "^vc-"); do
         if host $NAME.$VC > /dev/null 2>&1 ; then found=1; break; fi
     done
 
     if [ -z "$found" ]; then
-        #echo "Could not determine cluster membership for this node. Sleeping now."
         sleep 60
         continue;
     fi
 
-    # Better use gethostip
-    #IP=$(host ${NAME}.${VC} | grep "has address" | awk -F' ' '{print $4}')
-    #GW=$(echo $IP | awk -F. '{ print $1"."$2".255.254" }')
     IP=$(gethostip -d ${NAME}.${VC})
-    GW=$(gethostip -d login.${VC})
+    GW=$(gethostip -d gateway.${VC} 2>/dev/null || gethostip -d login.${VC})
  
     # Check a few directories and files
     if [ ! -d /cluster/${VC} ]; then
-        #echo "No cluster directory found for ${VC}."; 
         sleep 5
         continue;
     fi
     
     if ! ping -c 5 -W 5 login.${VC} >/dev/null 2>&1 ; then
-        #echo "No login node found for ${VC}."; 
         sleep 60
         continue;
     fi
@@ -53,6 +46,13 @@ if [ "$(ls -A /sys/class/infiniband)" ]; then
     IB_DEVICES=$(find /dev/infiniband -printf "--device=%p ")
 else
     IB_DEVICES=""
+fi
+
+# check if we have infiniband
+if [ -e /dev/ipath ]; then
+    IPATH=$(find /dev/ipath -printf "--device=%p ")
+else
+    IPATH=""
 fi
 
 # Check if we want to inject files into the container
@@ -76,6 +76,7 @@ case $state in
         docker run \
            --net=none \
            ${IB_DEVICES} \
+           ${IPATH} \
            -v /root:/root \
            -v /trinity/clustervision:/trinity/clustervision \
            -v /home/${VC}:/home \

@@ -15,5 +15,6 @@ if [[ ! -d /root/clusterbats/ ]]; then
     cd /root
     git clone http://github.com/clustervision/clusterbats
 fi
+pip install python-hostlist
 
 echo "$0 finished @ $(date)" >> /var/log/postinstall.log

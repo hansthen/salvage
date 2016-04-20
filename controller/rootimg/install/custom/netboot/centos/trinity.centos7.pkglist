@@ -91,3 +91,6 @@ psmisc
 
 # Fix for #526
 mcelog
+
+# Required for gethostip
+syslinux

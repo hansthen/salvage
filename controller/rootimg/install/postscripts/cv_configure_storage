@@ -7,12 +7,12 @@
 ##                 The volume group will always be mounted under /var.
 ##email          : Hans Then <hans.then@clustervision.com>
 
-if [ $(lvs --noheadings | awk -F' ' '{print $1}') == $PROFILE ]; then
+if [ "$(lvs --noheadings | grep -v docker-pool | awk -F' ' '{print $1}')" == "$PROFILE" ]; then
    echo "$0 already configured" >> /var/log/postinstall.log
 else
    # remove existing volume groups
    umount -a -t ext4
-   for vg in $(vgs --noheadings | grep -v "No Volumes" | awk -F' ' '{print $1}'); do 
+   for vg in $(vgs --noheadings | grep -v "No Volumes" | grep -v docker-pool | awk -F' ' '{print $1}'); do 
       vgchange -a n $vg
       vgremove -f $vg
    done
@@ -24,7 +24,7 @@ else
       pvcreate /dev/$disk
    done
    # create a volume group and logical volumes
-   vgcreate -f storage $(for d in $disks; do echo -n /dev/$disk; echo -n " " ; done)
+   vgcreate -f storage $(for disk in $disks; do echo -n /dev/$disk; echo -n " " ; done)
    vgchange -a y storage
    lvcreate -l 90%VG -n $PROFILE storage
    # create a file system and initialize it from the image

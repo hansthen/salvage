@@ -10,11 +10,9 @@ import requests
 import json
 
 # For now hardcoding the files and IPs. 
-default_xcat_host="10.141.255.254"
+default_xcat_host="controller"
 default_xcat_query={'userName':'trinity', 'password':'trinity', 'pretty':'1'}
 default_monitoring='monitoring'
-# HTH default_hosts_file="/opt/omd/sites/"+default_monitoring+"/etc/check_mk/conf.d/wato/hosts.mk"
-# HTH default_aggr_file="/opt/omd/sites/"+default_monitoring+"/etc/check_mk/multisite.mk"
 
 default_hosts_file="/cluster/omd/conf.d/hosts.mk"
 default_aggr_file="/cluster/omd/multisite.d/multisite.mk"
@@ -30,8 +28,7 @@ class MonCon(object):
   def get_hosts_from_xcat(self):
     #node_list=requests.get("https://"+self.xcat_host+"/xcatws"+"/nodes", verify=False, params=self.xcat_query).json()
     compute=requests.get("https://"+self.xcat_host+"/xcatws"+"/groups/compute", verify=False, params=self.xcat_query).json()
-    storage=requests.get("https://"+self.xcat_host+"/xcatws"+"/groups/storage", verify=False, params=self.xcat_query).json()
-    node_list = compute['compute']['members'].split(',') + storage['storage']['members'].split(',')
+    node_list = compute['compute']['members'].split(',') 
 
     print node_list
     def chunks(l, n):

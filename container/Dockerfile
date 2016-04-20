@@ -29,4 +29,7 @@ COPY rootimg /
 ADD rpms /rpms
 RUN yum install -y /rpms/*.rpm
 
+RUN chmod +x /docker-entrypoint.sh
+
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
+ENTRYPOINT ["/docker-entrypoint.sh"]

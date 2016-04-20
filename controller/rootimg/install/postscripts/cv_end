@@ -1,7 +1,7 @@
 #! /usr/bin/bash
 ##title          : cv_end
 ##description    : The last postscript to be run when doing an automated install.
-                   Use this to indicate that all postscripts have run.
+##                 Use this to indicate that all postscripts have run.
 ##author         : Hans Then
 ##email          : hans.then@gmail.com
 

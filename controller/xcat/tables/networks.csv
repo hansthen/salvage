@@ -1,4 +1,4 @@
 #netname,net,mask,mgtifname,gateway,dhcpserver,tftpserver,nameservers,ntpservers,logservers,dynamicrange,staticrange,staticrangeincrement,nodehostname,ddnsdomain,vlanid,domain,comments,disable
 "internal_net","10.141.0.0","255.255.0.0","eno2","10.141.255.254","10.141.255.254","10.141.255.254","10.141.255.254",,,"10.141.230.1-10.141.239.254",,,,,,,,
-"bmc_net","10.148.0.0","255.255.0.0","eno2","10.148.255.1",,,"10.141.255.254",,,,,,,,,,,
+"bmc_net","10.148.0.0","255.255.0.0","eno2","10.148.255.254",,,"10.141.255.254",,,,,,,,,,,
 "vc_a_net","172.16.0.0","255.255.0.0","eno2","<xcatmaster>",,,,,,,,,,,,"vc-a",,

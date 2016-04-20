@@ -126,6 +126,9 @@ search cluster. vc-a. cluster
 nameserver 10.141.255.254
 EOF
 
+systemctl stop ntpd
+ntpdate -s controller
+systemctl start ntpd
+
 service munge restart
 service slurm restart
-

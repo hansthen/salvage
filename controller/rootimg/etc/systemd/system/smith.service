@@ -1,6 +1,0 @@
-[Unit]
-Description=Synchronize Files accross a cluster
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/sbin/smith

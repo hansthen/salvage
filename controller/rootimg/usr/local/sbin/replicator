@@ -1,0 +1,3 @@
+#!/bin/bash
+
+while read line; do rsync -avz controller.cluster:${line} ${line}; done < /etc/replicator

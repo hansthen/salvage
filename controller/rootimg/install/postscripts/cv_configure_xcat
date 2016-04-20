@@ -64,14 +64,17 @@ source /etc/profile.d/xcat.sh
 mkdir -p /tmp/xcattables
 
 # FIXME: make these configurable
-read ETH1 ETH2 ETH3 <<<$(ls /sys/class/net/ | grep "^e" | sort | head -3)
+#read ETH1 ETH2 ETH3 <<<$(ls /sys/class/net/ | grep "^e" | sort | head -3)
+ETH1=$(ip route get 8.8.8.8 | grep -oP 'dev \K\S+')
+ETH2=$(ip route get 10.141.0.0 | grep -oP 'dev \K\S+')
+
 for table in $(ls /tmp/trinity/controller/xcat/tables); do
-    sed -e "s/\<eno1\>/$ETH1/g" -e "s/\<eno2\>/$ETH2/g"  -e "s/\<eno3\>/$ETH3/g"\
+    sed -e "s/\<eno1\>/$ETH1/g" -e "s/\<eno2\>/$ETH2/g" \
             /tmp/trinity/controller/xcat/tables/$table > /tmp/xcattables/$table;
 done
 
 restorexCATdb -p /tmp/xcattables  
-chtab key=timezone site.value=$(date +%Z)
+chtab key=timezone site.value=$(timedatectl | grep "Time zone" | grep -oP "Time zone: \K\S+")
 mknb x86_64
 
 makedhcp -n

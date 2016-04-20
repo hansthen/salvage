@@ -70,11 +70,11 @@ copy(){
   case $1 in
     master | controller )
       REPO=$( cd "$1" && pwd )
-      # Remove stale files under /trinity
+      # Remove rootimg files under /trinity
       # [ -d /trinity ] && rm -rf /trinity/*
       for profile in $( ls /trinity ) ; do
         if [ -d /trinity/${profile}/rootimg  ] ; then
-           echo "Removing stale /trinity/${profile}/rootimg"
+           echo "Removing /trinity/${profile}/rootimg"
            rm -rf /trinity/${profile}/rootimg
            # rmdir  /trinity/${profile}/rootimg
         fi  

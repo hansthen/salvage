@@ -5,8 +5,7 @@ After=docker.service
 
 [Service]
 Restart=always
-ExecStartPre=-/usr/bin/docker create --net=host --privileged=true \
-                 -p 5003:5003 --dns=10.141.255.254 \
+ExecStartPre=-/usr/bin/docker create --net=host --privileged=true -t \
                  -v /cluster/omd/conf.d:/opt/omd/sites/monitoring/etc/check_mk/conf.d/trinity \
                  -v /cluster/omd/multisite.d:/opt/omd/sites/monitoring/etc/check_mk/multisite.d/trinity \
                  --name=omd controller:5050/omd

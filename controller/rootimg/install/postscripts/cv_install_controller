@@ -13,32 +13,10 @@
 n=$(echo $NODE | egrep -o '[[:digit:]]*' | head -n1)
 # normalize to 1 or 2
 N=$((((n-1)%2)+1))
-
 # set the new ip addresses
 octet=$((254-$N))
 
-# update network scripts
-filename=$(grep -l IPADDR=10.141.255.254 /etc/sysconfig/network-scripts/ifcfg-*)
 set -x
-if [ ! -z $filename ]; then 
-    echo "SWitching IP addresses"
-    sed -e "s/\(IPADDR.\?\)=\(10\.14[18]\.255\)\.254/\1=\2.$octet/" -i $filename
-    echo "Changing ip addresses to allow floating"
-    echo controller-$N.cluster > /etc/hostname
-    hostname controller-$N.cluster 
-    dev=$(echo $filename | awk -F- '{print $3}')
-    ip addr del 10.141.255.254/16 dev $dev
-    ip addr del 10.148.255.254/16 dev $dev
-    ip addr add 10.141.255.$octet/16 dev $dev
-    ip addr add 10.148.255.$octet/16 dev $dev
-    echo "Checking IP addresses"
-    ip addr add 10.149.255.$octet/16 dev ib0
-    ip link set ib0 up
-    ip addr show dev $dev
-else
-    echo IP address 254 appears to be floating already. Did you run this script earlier?
-fi
-
 echo system | passwd hacluster --stdin
 echo drbd > /etc/modules-load.d/drbd.conf
 
@@ -57,6 +35,7 @@ dd if=/dev/zero of=/dev/mapper/vg_root-lv_drbd bs=1M count=1024
 if ! grep 10.141.255.253 /etc/hosts; then echo "10.141.255.253 controller-1 controller-1.cluster" >> /etc/hosts; fi
 if ! grep 10.141.255.252 /etc/hosts; then echo "10.141.255.252 controller-2 controller-2.cluster" >> /etc/hosts; fi
 if ! grep 10.141.255.254 /etc/hosts; then echo "10.141.255.254 controller controller.cluster" >> /etc/hosts; fi
+hostnamectl set-hostname controller-${N}.cluster
 
 # If we can use the IB interface for DRBD we will do so.
 if ping -c1 10.149.255.$octet > /dev/null 2>&1; then
@@ -112,6 +91,7 @@ else
     ssh controller-1.cluster pcs cluster auth $(hostname) -u hacluster -p system
     ssh controller-1.cluster pcs cluster node add $(hostname)
     pcs cluster auth
+    scp -r controller-1.cluster/root/.xcat /root
 fi
 pcs cluster start
 
@@ -133,7 +113,9 @@ killall dhclient
 systemctl disable firewalld
 systemctl stop firewalld
 
-read ETH1 ETH2 ETH3 <<<$(ls /sys/class/net/ | grep "^e" | sort | head -3)
+#read ETH1 ETH2 ETH3 <<<$(ls /sys/class/net/ | grep "^e" | sort | head -3)
+ETH1=$(ip route get 8.8.8.8 | grep -oP 'dev \K\S+')
+ETH2=$(ip route get 10.141.0.0 | grep -oP 'dev \K\S+')
 # setup NAT, so nodes can access the internet (see manual step 1.f)
 systemctl enable iptables 
 systemctl start iptables
@@ -150,21 +132,6 @@ service iptables save
 #--------------------------------------------------------------------------------------
 ip route add 172.16.0.0/12 dev $ETH2
 echo "172.16.0.0/12 dev $ETH2" > /etc/sysconfig/network-scripts/route-${ETH2} 
-
-#--------------------------------------------------------------------------------------
-# Additional network processing
-#--------------------------------------------------------------------------------------
-sed -i /etc/sysconfig/network-scripts/ifcfg-${ETH2} -e "s/DEFROUTE=\(.*\)/DEFROUTE=no/"
-sed -i /etc/sysconfig/network-scripts/ifcfg-${ETH1} -e "s/DEFROUTE=\(.*\)/DEFROUTE=yes/"
-
-last=$(ip route get 10.141.255.254 | head -1 | awk -F' ' '{print $NF}' | awk -F. '{print $NF}')
-if [[ ! -z "$ETH2" ]]; then
-cat >> /etc/sysconfig/network-scripts/ifcfg-$ETH2 << EOF
-IPADDR1=10.148.255.${last}
-PREFIX1=16
-GATEWAY1=10.148.255.${last}
-EOF
-fi
 
 if ! systemctl restart network; then
     sleep 3
@@ -198,12 +165,6 @@ if [[ -f /tmp/trinity/site ]]; then
     cp /tmp/trinity/site /trinity/site
 fi
 mkdir -p /var/lib/docker-registry
-
-#--------------------------------------------------------------------------------------
-# Setup ib
-#--------------------------------------------------------------------------------------
-sed -e "s/\(IPADDR.\?\)=\(10\.149\.255\)\.254/\1=\2.${last}/" -i /etc/sysconfig/network-scripts/ifcfg-ib0
-ifup ib0
 
 #------------------------------------------------------------------------------
 # Install and configure Horizon
@@ -254,5 +215,15 @@ echo system | passwd trinity --stdin
 mkdef -t policy 6 name=trinity rule=allow
 sed  -e "/<Directory \/>/,/<\/Directory>/ s/Require/#Require/" -i /etc/httpd/conf/httpd.conf
 systemctl restart httpd 
+
+#Make xCAT available via the floating IP.
+if grep -v XCATHOST /etc/profile.d/xcat.sh; then
+    echo "export XCATHOST=controller.cluster:3001" >> /etc/profile.d/xcat.sh
+fi
+
+systemctl enable replicator.timer
+systemctl start replicator.timer
+systemctl enable memcached
+systemctl start memcached
 
 echo "$0 finished @ $(date)" >> /var/log/postinstall.log

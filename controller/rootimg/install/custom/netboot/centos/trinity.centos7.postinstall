@@ -40,7 +40,7 @@ cp -rT /etc/security/limits.d $installroot/etc/security/limits.d
 
 #-- copy repositories from controller node
 install -d $installroot/etc/yum.repos.d
-cp -rT /etc/yum.repos.d $installroot/etc/yum.repos.d
+cp -rT /etc/yum.repos.d/ $installroot/etc/yum.repos.d
 
 #-- copy keys (so the repos work)
 install -d $installroot/etc/pki/rpm-gpg

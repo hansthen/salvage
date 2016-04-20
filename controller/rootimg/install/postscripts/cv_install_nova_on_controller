@@ -66,9 +66,9 @@ echo "-----------------------------------"
 
 echo "----Configuring openstack-nova-network: editing /etc/nova/nova.conf----"
 # Parameters and constants
-read ETH0 ETH1 ETH2 <<<$(ls /sys/class/net/ | grep "^e" | sort | head -3)
-PUB_NIC=${ETH1}
-PRI_NIC=${ETH2} 
+read ETH1 ETH2 ETH3 <<<$(ls /sys/class/net/ | grep "^e" | sort | head -3)
+PUB_NIC=${ETH2}
+PRI_NIC=${ETH3} 
 
 openstack-config --set /etc/nova/nova.conf DEFAULT network_api_class  nova.network.api.API
 openstack-config --set /etc/nova/nova.conf DEFAULT security_group_api  nova
