@@ -9,12 +9,17 @@
 #--------------------------------------------------------------------------------------
 # Install Trinity stuff
 #--------------------------------------------------------------------------------------
+
+# wait for pacemaker to setup controller's floating ip
+while ! ping -c1 controller.cluster &>/dev/null; do :; done
+
 # determine if a master is used to install this node:
 if [ ! -z $SITEMASTER ]; then
     echo master is present
     echo "Creating installation tree"
     source /etc/profile.d/xcat.sh
     copycds -n centos7 -o $(ls -cr /tmp/trinity/iso/*.iso | head -1) > /dev/null
+    XCAT_VERSION=$(lsxcatd -a | head -n1 | awk '{print $2}')
 else
     echo No master found, checking for a git repository.
     SCRIPT=$(readlink -f $0)
@@ -28,12 +33,13 @@ else
     (git branch | grep "*"; git rev-parse --short HEAD; git status --porcelain) > /tmp/trinity/version
     cd -
 
+    XCAT_VERSION=2.11
     # setup repositories
     yum -y -q install $(grep -v ^# $REPODIR/controller/rootimg/install/custom/install/centos/controller.pkglist)
     yum -y -q install epel-release
     yum -y -q install http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm
     yum -y -q install https://repos.fedorapeople.org/repos/openstack/openstack-liberty/rdo-release-liberty-1.noarch.rpm
-    wget --no-check-certificate http://sourceforge.net/projects/xcat/files/yum/2.9/xcat-core/xCAT-core.repo -O /etc/yum.repos.d/xCAT-core.repo
+    wget --no-check-certificate http://sourceforge.net/projects/xcat/files/yum/2.11/xcat-core/xCAT-core.repo -O /etc/yum.repos.d/xCAT-core.repo
     wget --no-check-certificate http://sourceforge.net/projects/xcat/files/yum/xcat-dep/rh7/x86_64/xCAT-dep.repo -O /etc/yum.repos.d/xCAT-dep.repo
     yum -y -q install $(grep -v ^# $REPODIR/controller/rootimg/install/custom/install/centos/controller.otherpkgs)
     source /etc/profile.d/xcat.sh
@@ -86,7 +92,7 @@ makeconservercf
 #-------------------------------------------------------------------------------------
 # Copy the modules environment
 #-------------------------------------------------------------------------------------
-cp -LrT /tmp/trinity/clustervision /trinity/clustervision &
+cp -rT /tmp/trinity/clustervision /trinity/clustervision &
 cp /tmp/trinity/version /trinity/version
 if [[ -f /tmp/trinity/site ]]; then
     cp /tmp/trinity/site /trinity/site
@@ -103,7 +109,7 @@ yum -y -q install https://repos.fedorapeople.org/repos/openstack/openstack-liber
 yum -y -q install http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm
 yum-config-manager --disable xcat-otherpkgs* local-centos* > /dev/null
 yum-config-manager --enable base epel extras updates openstack-liberty > /dev/null
-yum-config-manager --add-repo http://sourceforge.net/projects/xcat/files/yum/2.9/xcat-core/xCAT-core.repo > /dev/null
+yum-config-manager --add-repo http://sourceforge.net/projects/xcat/files/yum/${XCAT_VERSION}/xcat-core/xCAT-core.repo > /dev/null
 yum-config-manager --add-repo http://sourceforge.net/projects/xcat/files/yum/xcat-dep/rh7/x86_64/xCAT-dep.repo > /dev/null
 
 echo "Syncing repositories, this may take some time"

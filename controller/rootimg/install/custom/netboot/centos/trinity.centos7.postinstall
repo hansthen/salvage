@@ -48,5 +48,5 @@ cp -rT /etc/pki/rpm-gpg $installroot/etc/pki/rpm-gpg
 
 #-- Copy supporting files from the local environment
 if [ -d /trinity/site-local/compute/rootimg/ ]; then
-    cp -LrT /trinity/site-local/compute/rootimg/ $installroot
+    cp -rT /trinity/site-local/compute/rootimg/ $installroot
 fi

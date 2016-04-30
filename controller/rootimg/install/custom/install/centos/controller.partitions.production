@@ -1,0 +1,6 @@
+part /boot --size 512 --fstype ext4 --ondisk /dev/sda
+part swap --recommended --ondisk /dev/sda
+part pv.01 --size 1 --grow --ondisk /dev/sda
+volgroup vg_root pv.01
+logvol / --vgname=vg_root --name=lv_root --size 600000 --fstype ext4
+logvol  /drbd  --vgname=vg_root --name=lv_drbd --size=200000

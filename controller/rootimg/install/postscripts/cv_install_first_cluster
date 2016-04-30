@@ -14,7 +14,7 @@ FIRST_TENANT="a"
 FIRST_USER="a"
 FIRST_PASS="system"
 FIRST_CLUSTER="vc-a"
-FIRST_POOL="login_a"
+FIRST_POOL="login-a"
 FIRST_FLOATING="172.16.255.254"
 LOGIN_SETUP="/trinity/login/mini-setup.sh"
 LOGIN_DATA="/root/.setup-login-a"
@@ -63,8 +63,8 @@ chmod go-rw /root/keystonerc_${FIRST_TENANT}
 scp /root/keystonerc_${FIRST_TENANT} controller-2.cluster:/root/keystonerc_${FIRST_TENANT}
 source /root/keystonerc_${FIRST_TENANT}
 
-nova secgroup-add-rule default tcp 1 65535 0.0.0.0/0
-nova secgroup-add-rule default icmp -1 -1 0.0.0.0/0
+#nova secgroup-add-rule default tcp 1 65535 0.0.0.0/0
+#nova secgroup-add-rule default icmp -1 -1 0.0.0.0/0
 
 nova floating-ip-create ${FIRST_POOL}
 nova boot --flavor 2 --image ${LOGIN_IMAGE} --security-groups default --user-data ${LOGIN_DATA} ${LOGIN_NODE}

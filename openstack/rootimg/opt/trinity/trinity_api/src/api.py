@@ -9,6 +9,7 @@ import re
 import subprocess
 import base64
 import time
+import tzlocal
 
 conf_file='/etc/trinity/trinity_api.conf'
 config=SafeConfigParser()
@@ -22,6 +23,13 @@ trinity_user=config.get('xcat','trinity_user')
 trinity_password=config.get('xcat','trinity_password')
 node_pref=config.get('cluster','node_pref')
 cont_pref=config.get('cluster','cont_pref')
+
+xcat_version = subprocess.check_output('/opt/xcat/bin/lsxcatd -v', shell=True)
+version = re.search(r'Version \d+\.(\d+)(\.\d+)?\s', xcat_version)
+if version and int(version.group(1)) < 10:
+    password_parm = 'password'
+else:
+    password_parm = 'userPW'
 
 # Globals here
 # state_has_changed = False
@@ -39,7 +47,7 @@ class TrinityAPI(object):
     if (not (self.token or hasattr(self,'password'))) and self.request.auth:
       (self.username,self.password)=self.request.auth
     self.errors()
-    self.query = {'userName': self.trinity_user, 'password':self.trinity_password, 'userPW': self.trinity_password }
+    self.query = {'userName': self.trinity_user, password_parm: self.trinity_password }
     self.headers={"Content-Type":"application/json", "Accept":"application/json"} # setting this by hand for now
     self.authenticate()    
 
@@ -831,7 +839,7 @@ def modify_cluster(cluster,version=1):
     fop.close()
     replacements={
       "vc-a":vc_cluster,
-      "UTC":time.tzname[1]
+      "UTC":tzlocal.get_localzone().zone or 'UTC'
     }
     for i,j in replacements.iteritems():
       print i,j

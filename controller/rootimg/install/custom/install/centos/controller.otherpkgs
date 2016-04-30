@@ -31,6 +31,7 @@ python-memcached
 python-retrying
 python-bottle
 python-cherrypy
+python-tzlocal
 
 #-- packages required for HA --#
 drbdlinks

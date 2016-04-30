@@ -15,10 +15,7 @@ pcs -f config resource create trinity-api systemd:trinity-api op monitor interva
 pcs -f config constraint colocation add trinity-api ip
 pcs -f config constraint order start xCAT then start trinity-api
 pcs -f config constraint order start httpd then start trinity-api
-
-pcs -f config constraint order stop grp_OpenStack then stop fs_drbd
-pcs -f config constraint order stop grp_xCAT then stop fs_drbd
-pcs -f config constraint order stop fs_drbd then demote ms_drbd
+pcs -f config constraint order start grp_OpenStack then start grp_NovaCompute-clone
 
 pcs cluster cib-push config
 echo "$0 finished @ $(date)" >> /var/log/postinstall.log

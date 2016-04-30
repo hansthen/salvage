@@ -9,9 +9,8 @@ pcs cluster cib config
 pcs -f config resource create sentinel ocf:pacemaker:Dummy
 pcs -f config constraint colocation add sentinel ip
 pcs -f config constraint order start grp_xCAT then start sentinel
-pcs -f config constraint order start grp_OpenStack-clone then start sentinel
+pcs -f config constraint order start grp_OpenStack then start sentinel
 pcs -f config constraint order start trinity-api then start sentinel
-pcs -f config constraint order start grp_NovaCompute-clone then start sentinel
 
 # After everything is installed we remove the location constraint.
 pcs -f config constraint remove location-ip-controller-1.cluster-50

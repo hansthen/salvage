@@ -183,6 +183,8 @@ cp -LrT /trinity/openstack/rootimg/ /
 #-- Trinity API setup
 cd /opt/trinity/trinity_api
 python setup.py install
+sed -e "s/eno2/${ETH2}/g" \
+    -i /etc/trinity/trinity_api.conf
 cd -
 
 #Install the python client
@@ -225,5 +227,7 @@ systemctl enable replicator.timer
 systemctl start replicator.timer
 systemctl enable memcached
 systemctl start memcached
+
+chmod -x /usr/lib/systemd/system/*
 
 echo "$0 finished @ $(date)" >> /var/log/postinstall.log

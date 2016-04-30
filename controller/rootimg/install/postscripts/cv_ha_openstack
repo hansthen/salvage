@@ -29,6 +29,7 @@ fi
 
 "${mysql[@]}" <<-EOSQL
     SET @@SESSION.SQL_LOG_BIN=0;
+    set global max_connections = 1024;
 
     DELETE FROM mysql.user ;
     CREATE USER 'root'@'%' IDENTIFIED BY 'system' ;
@@ -113,9 +114,6 @@ chmod go-rw /root/keystonerc_admin
 scp /root/keystonerc_admin controller-2.cluster:/root/keystonerc_admin
 source /root/keystonerc_admin
 
-sed -e "s/eno2/${ETH2}/g" \
-    -i /etc/trinity/trinity_api.conf
-
 #-- Create the Flat Network
 systemctl start openstack-nova-network
 
@@ -144,6 +142,9 @@ glance image-create \
     --container-format "${CLOUD_CONTAINER_FORMAT}" \
     --visibility public \
     --file "${CLOUD_IMAGE}"
+
+nova secgroup-add-rule default tcp 1 65535 0.0.0.0/0
+nova secgroup-add-rule default icmp -1 -1 0.0.0.0/0
 
 systemctl daemon-reload
 
