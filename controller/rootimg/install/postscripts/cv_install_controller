@@ -17,7 +17,7 @@ if [ ! -z $SITEMASTER ]; then
     mount ${SITEMASTER}:/trinity /tmp/trinity       
     echo "Creating installation tree"
     source /etc/profile.d/xcat.sh
-    copycds -n centos7 -o $(ls -cr /tmp/trinity/iso/*.iso | head -1)
+    copycds -n centos7 -o $(ls -cr /tmp/trinity/iso/*.iso | head -1) > /dev/null
 else
     echo No master found, checking for a git repository.
     SCRIPT=$(readlink -f $0)
@@ -28,13 +28,15 @@ else
 
     # Fix #379
     cd $REPODIR
-    (git branch | grep "*"; git rev-parse --short HEAD; git status --porcelain) > /tmp/trinity/version
+    (git branch | grep "*"; git describe; git status --porcelain) > /tmp/trinity/version
     cd -
 
     # setup repositories
     yum -y -q install $(grep -v ^# $REPODIR/controller/rootimg/install/custom/install/centos/controller.pkglist)
     yum -y -q install epel-release
-    yum -y -q install https://repos.fedorapeople.org/repos/openstack/openstack-juno/rdo-release-juno-1.noarch.rpm
+    yum -y -q install https://repos.fedorapeople.org/repos/openstack/EOL/openstack-juno/rdo-release-juno-1.noarch.rpm
+    sed -i "/^baseurl/s/openstack-juno/EOL\/openstack-juno/" /etc/yum.repos.d/rdo-release.repo
+
     wget --no-check-certificate http://sourceforge.net/projects/xcat/files/yum/2.9/xcat-core/xCAT-core.repo -O /etc/yum.repos.d/xCAT-core.repo
     wget --no-check-certificate http://sourceforge.net/projects/xcat/files/yum/xcat-dep/rh7/x86_64/xCAT-dep.repo -O /etc/yum.repos.d/xCAT-dep.repo
     yum -y -q install $(grep -v ^# $REPODIR/controller/rootimg/install/custom/install/centos/controller.otherpkgs)
@@ -45,7 +47,7 @@ else
          -P /tmp/trinity/iso/
 
     echo "Creating installation tree"
-    copycds -n centos7 -o $(ls -cr /tmp/trinity/iso/*.iso | head -1)
+    copycds -n centos7 -o $(ls -cr /tmp/trinity/iso/*.iso | head -1) > /dev/null
 fi
 
 systemctl stop NetworkManager
@@ -84,7 +86,7 @@ for table in $(ls /tmp/trinity/controller/xcat/tables); do
 done
 
 restorexCATdb -p /tmp/xcattables  
-mknb x86_64
+chtab key=timezone site.value=$(timedatectl | grep "Time zone" | grep -oP "Time zone: \K\S+")
 
 cd /opt/xcat/share/xcat/netboot/centos
 
@@ -93,6 +95,7 @@ ln -s ../rh/dracut .
 
 cd /
 cat /tmp/trinity/controller/xcat/patches/*.patch | patch -p0
+mknb x86_64
 systemctl restart xcatd
 setenforce 0
 sestatus
@@ -183,19 +186,25 @@ exportfs -a
 #--------------------------------------------------------------------------------------
 # Selective updates
 #--------------------------------------------------------------------------------------
-mkdir -p /install/post/otherpkgs/centos7/x86_64
-yumdownloader --resolve --destdir /install/post/otherpkgs/centos7/x86_64 \
-    $(grep -v "^#" /install/custom/netboot/centos/trinity.centos7.otherpkgs)
+yum -y -q install epel-release
+yum -y -q install https://repos.fedorapeople.org/repos/openstack/EOL/openstack-juno/rdo-release-juno-1.noarch.rpm
+sed -i "/^baseurl/s/openstack-juno/EOL\/openstack-juno/" /etc/yum.repos.d/rdo-release.repo
 
-#if [ -z $SITEMASTER ]; then
-#    reposync -n -r epel -r extras -r updates -r xcat-2-core -r xcat-dep -r openstack-juno -p /install/post/otherpkgs/centos7/x86_64/
-#else
-#    reposync -n -r xcat-otherpkgs0 -p /install/post/otherpkgs/centos7/x86_64/
-#fi
+yum-config-manager --disable xcat-otherpkgs* local-centos*
+yum-config-manager --enable base epel extras updates openstack-juno
+yum-config-manager --add-repo http://sourceforge.net/projects/xcat/files/yum/2.9/xcat-core/xCAT-core.repo
+yum-config-manager --add-repo http://sourceforge.net/projects/xcat/files/yum/xcat-dep/rh7/x86_64/xCAT-dep.repo
+
+mkdir -p /install/post/otherpkgs/centos7/x86_64
+if [ -z $SITEMASTER ]; then
+    reposync -n -r epel -r extras -r updates -r xcat-2-core -r xcat-dep -r openstack-juno -p /install/post/otherpkgs/centos7/x86_64/
+else
+    reposync -n -r xcat-otherpkgs0 -p /install/post/otherpkgs/centos7/x86_64/
+fi
 
 createrepo /install/post/otherpkgs/centos7/x86_64/
-genimage centos7-x86_64-netboot-trinity
-packimage centos7-x86_64-netboot-trinity
+(genimage centos7-x86_64-netboot-trinity; packimage centos7-x86_64-netboot-trinity) &
+(genimage centos7-x86_64-netboot-nova; packimage centos7-x86_64-netboot-nova) &
 
 #--------------------------------------------------------------------------------------
 # install docker and docker-registry
@@ -214,11 +223,8 @@ else
     docker pull ${SITEMASTER}:5050/trinity
     docker tag ${SITEMASTER}:5050/trinity controller:5050/trinity
 fi
-docker push controller:5050/trinity
-
-#--------------------------------------------------------------------------------------
-# cleanup
-#--------------------------------------------------------------------------------------
+docker push controller:5050/trinity &
+chmod -x /usr/lib/systemd/system/*
 
 #--------------------------------------------
 # Install the xCAT web service
@@ -238,13 +244,6 @@ mkdef -t policy 6 name=trinity rule=allow
 sed  -e "/<Directory \/>/,/<\/Directory>/ s/Require/#Require/" -i /etc/httpd/conf/httpd.conf
 service httpd restart
 
-# Remove stale repositories.
-# Fixme: we should do this after we have installed everything, as a final postscript.
-yum -y -q install epel-release
-yum -y -q install https://repos.fedorapeople.org/repos/openstack/openstack-juno/rdo-release-juno-1.noarch.rpm
-yum-config-manager --disable xcat-otherpkgs* local-centos*
-yum-config-manager --enable base epel extras updates openstack-juno
-yum-config-manager --add-repo http://sourceforge.net/projects/xcat/files/yum/2.9/xcat-core/xCAT-core.repo
-yum-config-manager --add-repo http://sourceforge.net/projects/xcat/files/yum/xcat-dep/rh7/x86_64/xCAT-dep.repo
+wait 
 
 echo "$0 finished @ $(date)" >> /var/log/postinstall.log

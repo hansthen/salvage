@@ -37,6 +37,7 @@ yum -y -q install epel-release
 yum -y -q install python-pip
 pip install bottle
 pip install cherrypy
+pip install tzlocal
 
 #-- Trinity API setup
 cd /opt/trinity/trinity_api
@@ -46,18 +47,19 @@ if [[ ! -z "${SITEMASTER}" ]]; then
     sed 's#/trinity/login/setup.sh#/trinity/login/mini-setup.sh#' -i /etc/trinity/trinity_api.conf
 fi 
 
+BRIDGE="br100"
 source /etc/profile.d/xcat.sh
-DHCP_NIC=$(tabdump -w key==dhcpinterfaces site | grep dhcpinterfaces | awk -F "," '{print $2}' | tr -d '\"')
+
 sed -e "s/127.0.0.1/10.141.255.254/g" \
-    -e "s/eno2/${DHCP_NIC}/g" \
+    -e "s/eno2/${BRIDGE}/g" \
     -i /etc/trinity/trinity_api.conf
 
 
 mkdir -p /var/log/trinity
 
 # Start the API
-service trinity_api start
-chkconfig trinity_api on
+systemctl start trinity-api
+systemctl enable trinity-api
 
 #-- Install the python client
 cd /opt/trinity/trinity_client
@@ -120,7 +122,6 @@ glance image-create \
 read ETH0 ETH1 ETH2 <<<$(ls /sys/class/net/ | grep "^e" | sort | head -3)
 PRI_NIC=${ETH1} 
 
-BRIDGE="br100"
 NETWORK_LABEL="novanetwork"
 nova network-create \
        --fixed-range-v4 192.168.32.0/24 \
@@ -135,7 +136,7 @@ FIRST_TENANT="a"
 FIRST_USER="a"
 FIRST_PASS="system"
 FIRST_CLUSTER="vc-a"
-FIRST_POOL="login_a"
+FIRST_POOL="login-a"
 FIRST_FLOATING="172.16.255.254"
 LOGIN_NODE="login-a"
 SKEL=".skel"
@@ -198,6 +199,11 @@ systemctl start trinity-route
 # Provide DNS on the bridge interface not the physical interface.
 while ! (ip a show dev ${BRIDGE} | grep 10.141.255.254); do sleep 10; done
 chtab key=dnsinterfaces site.value=${BRIDGE}
+chtab key=dhcpinterfaces site.value=${BRIDGE}
+chtab netname=internal_net networks.mgtifname=${BRIDGE}
+chtab netname=bmc_net networks.mgtifname=${BRIDGE}
+chtab netname=vc_a_net networks.mgtifname=${BRIDGE}
+makedhcp -n
 makedns -n
 
 echo "$0 finished @ $(date)" >> /var/log/postinstall.log

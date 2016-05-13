@@ -1,15 +1,10 @@
-+++ /opt/xcat/share/xcat/netboot/genesis/x86_64/fs/bin/bmcsetup	2015-12-23 15:03:42.560091048 +0100
-@@ -99,6 +99,13 @@
- elif [ "$IPMIMFG" == "47488" ]; then
-         LOCKEDUSERS=1
- fi
-+#
-+# hans.then@clustervision.com
-+# 
-+# We always assume LOCKEDUSERS=1 as that will work on both types of HW.
-+# 
+--- /opt/xcat/share/xcat/netboot/genesis/x86_64/fs/bin/bmcsetup.orig    2016-04-26 07:35:56.906256512 +0200
++++ /opt/xcat/share/xcat/netboot/genesis/x86_64/fs/bin/bmcsetup 2016-04-26 07:36:07.230158899 +0200
+@@ -12,6 +12,7 @@
+ #     0x08 0x00 0x49 0x4e 0x54 0x45 0x4c
+ #     0x08 0x04
+ #
 +LOCKEDUSERS=1
-+ 
- echo -n "Auto detecting LAN channel..."
- 
- while [ -z "$LANCHAN" ]; do 
+ allowcred.awk &
+ CREDPID=$!
+ sleep 5

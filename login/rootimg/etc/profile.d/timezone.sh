@@ -1,0 +1,1 @@
+export TZ=$(date +%Z)

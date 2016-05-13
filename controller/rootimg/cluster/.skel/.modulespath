@@ -2,5 +2,6 @@
 /etc/modulefiles                                # General module files
 #/usr/share/Modules/your_contribs                       # Edit for your requirements
 /trinity/clustervision/modulefiles
+/trinity/clustervision/CentOS/7/modulefiles
 /cluster/modulefiles
 

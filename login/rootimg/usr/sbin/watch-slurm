@@ -1,0 +1,11 @@
+#!/bin/bash
+SHA1SLURM=/var/run/SHA1SLURM
+NODES=/etc/slurm/slurm-nodes.conf
+if [ -f "$SHA1SLURM" ]; then
+   if ! sha1sum -c "$SHA1SLURM"; then
+       systemctl restart slurm
+       sha1sum "$NODES" > "$SHA1SLURM"
+   fi
+else
+   sha1sum "$NODES" > "$SHA1SLURM"
+fi

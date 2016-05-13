@@ -30,7 +30,8 @@ class MonCon(object):
   def get_hosts_from_xcat(self):
     #node_list=requests.get("https://"+self.xcat_host+"/xcatws"+"/nodes", verify=False, params=self.xcat_query).json()
     compute=requests.get("https://"+self.xcat_host+"/xcatws"+"/groups/compute", verify=False, params=self.xcat_query).json()
-    node_list = compute['compute']['members'].split(',')
+    storage=requests.get("https://"+self.xcat_host+"/xcatws"+"/groups/storage", verify=False, params=self.xcat_query).json()
+    node_list = compute['compute']['members'].split(',') + storage['storage']['members'].split(',')
 
     print node_list
     def chunks(l, n):

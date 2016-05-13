@@ -4,7 +4,5 @@
 ##email          : Hans Then <hans.then@clustervision.com>
 
 systemctl start docker
-docker stop trinity 2> /dev/null
-docker rm trinity 2> /dev/null
 systemctl start trinity
 echo "$0 finished @ $(date)" >> /var/log/postinstall.log

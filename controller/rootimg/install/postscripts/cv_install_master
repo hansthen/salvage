@@ -94,7 +94,8 @@ exportfs -a
 #--------------------------------------------------------------------------------------
 echo "Creating installation tree"
 # updates and extras are required to install docker
-yum -y -q install https://repos.fedorapeople.org/repos/openstack/openstack-juno/rdo-release-juno.rpm
+yum -y -q install https://repos.fedorapeople.org/repos/openstack/EOL/openstack-juno/rdo-release-juno-1.noarch.rpm
+sed -i "/^baseurl/s/openstack-juno/EOL\/openstack-juno/" /etc/yum.repos.d/rdo-release.repo
 yum -y -q install --enablerepo=extras epel-release
 wget http://sourceforge.net/projects/xcat/files/yum/2.9/xcat-core/xCAT-core.repo -O /etc/yum.repos.d/xCAT-core.repo
 wget http://sourceforge.net/projects/xcat/files/yum/xcat-dep/rh7/x86_64/xCAT-dep.repo -O /etc/yum.repos.d/xCAT-dep.repo

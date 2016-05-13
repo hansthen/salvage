@@ -1,0 +1,11 @@
+#! /usr/bin/bash
+##title          : cv_handover
+##description    : Run this postscript just before handing it over the customer.
+##author         : Hans Then
+##email          : hans.then@gmail.com
+
+cd /
+git add .
+git commit -m "Handover version"
+
+echo "$0 finished" >> /var/log/postinstall.log

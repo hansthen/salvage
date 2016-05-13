@@ -1,0 +1,16 @@
+#! /usr/bin/bash
+##title          : cv_end
+##description    : The last postscript to be run when doing an automated install.
+                   Use this to indicate that all postscripts have run.
+##author         : Hans Then
+##email          : hans.then@gmail.com
+
+version=$(cat /trinity/version | head -2)
+cd /
+mv gitignore .gitignore
+git init
+git add .
+git commit -m "Initial system setup based on Trinity: ${version//\*/}"
+
+
+echo "$0 finished @ $(date)" >> /var/log/postinstall.log

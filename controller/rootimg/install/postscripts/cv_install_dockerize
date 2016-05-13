@@ -49,7 +49,6 @@ for profile in "${profiles[@]}"; do
       docker tag ${SITEMASTER}:5050/${profile} ${REGISTRY}/${profile}
   fi
       
-  docker push ${REGISTRY}/${profile}
   # FIXME the run commands should be part of the unit file.
   cmd_string=""
   for port in ${ports[${profile}]}; do
@@ -82,4 +81,10 @@ for profile in "${profiles[@]}"; do
   service=${profile//_/-}
   systemctl enable ${service}.service
 done
+mysql -uroot -psystem --protocol=tcp -e 'set global max_connections=1024'
+
+# Do the image push in the background
+for profile in "${profiles[@]}"; do
+  docker push ${REGISTRY}/${profile}
+done &
 echo "$0 finished @ $(date)" >> /var/log/postinstall.log

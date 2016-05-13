@@ -28,7 +28,7 @@ while [ 1 ]; do
         continue;
     fi
     
-    if ! ping -c 5 -W 5 login.${VC} > /dev/null 2>&1 ; then
+    if ! ping -c 5 -W 5 login.${VC} >/dev/null 2>&1 ; then
         #echo "No login node found for ${VC}."; 
         sleep 60
         continue;
@@ -45,20 +45,8 @@ else
    IMAGE=trinity
 fi
 
-# if there is a newer image, remove the container
-if docker pull controller:5050/${IMAGE} | tail -1 | grep "Downloaded newer"; then 
-    docker stop trinity
-    docker rm trinity
-fi
-
 # check if we have infiniband
 if [ "$(ls -A /sys/class/infiniband)" ]; then
-    #IB_DEVICES="--device=/dev/infiniband/issm0 \
-    #           --device=/dev/infiniband/rdma_cm \
-    #           --device=/dev/infiniband/ucm0 \
-    #           --device=/dev/infiniband/umad0 \
-    #           --device=/dev/infiniband/uverbs0"
-
     IB_DEVICES=$(find /dev/infiniband -printf "--device=%p ")
 else
     IB_DEVICES=""
@@ -92,6 +80,7 @@ case $state in
            -v /cluster/${VC}/etc/slurm:/etc/slurm \
            -v /cluster/${VC}/etc/munge:/etc/munge \
            -v /cluster/${VC}/.modulespath:/usr/share/Modules/init/.modulespath \
+           ${INJECT} \
            --hostname=${NAME}.${VC} \
            --dns-search=${VC} \
            --name=trinity \

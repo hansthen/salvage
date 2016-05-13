@@ -23,13 +23,12 @@ workdir=$5
 #-- Copy supporting files
 cp -LrT /trinity/compute/rootimg $installroot
 
-#-- A small docker patch
-sed -i 's/OPTIONS=\(.*\)/OPTIONS=--insecure-registry controller:5050 \1/' $installroot/etc/sysconfig/docker
-
 #-- Enable services
 chroot $installroot chkconfig rdma on
 chroot $installroot chkconfig ntpd on
-chroot $installroot chkconfig openvswitch on
+# openvswitch does not need to be running
+#chroot $installroot chkconfig openvswitch off
+# These will be started in the postscriptt.
 chroot $installroot chkconfig trinity off
 chroot $installroot chkconfig docker off
 
@@ -43,16 +42,11 @@ cp -rT /etc/security/limits.d $installroot/etc/security/limits.d
 install -d $installroot/etc/yum.repos.d
 cp -rT /etc/yum.repos.d $installroot/etc/yum.repos.d
 
+#-- copy keys (so the repos work)
+install -d $installroot/etc/pki/rpm-gpg
+cp -rT /etc/pki/rpm-gpg $installroot/etc/pki/rpm-gpg
+
 #-- Copy supporting files from the local environment
 if [ -d /trinity/site-local/compute/rootimg/ ]; then
     cp -LrT /trinity/site-local/compute/rootimg/ $installroot
 fi
-
-#-- Fix for #411 : create a stateless var
-rm -rf $installroot/.var
-mkdir -p $installroot/.var/lib/
-mkdir -p $installroot/var/lib/rpm
-mv -f $installroot/var/lib/rpm $installroot/.var/lib/rpm
-
-# Fix for #509
-chroot $installroot package-cleanup -y --oldkernels --count=1

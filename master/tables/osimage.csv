@@ -1,2 +1,2 @@
 #imagename,groups,profile,imagetype,description,provmethod,rootfstype,osdistroname,osupdatename,cfmdir,osname,osvers,osarch,synclists,postscripts,postbootscripts,serverrole,isdeletable,kitcomponents,comments,disable
-"centos7-x86_64-install-controller",,"controller","linux",,"install",,"centos7-x86_64",,,"Linux","centos7","x86_64",,,"cv_install_slapd,cv_install_controller,cv_install_dockerize,cv_setup_xcatdb,cv_finalize",,,,,
+"centos7-x86_64-install-controller",,"controller","linux",,"install",,"centos7-x86_64",,,"Linux","centos7","x86_64",,,"cv_install_controller,cv_install_slapd,cv_install_dockerize,cv_setup_xcatdb,cv_install_compute_on_controller,cv_install_openstack_on_controller,cv_install_rsa,cv_install_mail,cv_install_clusterbats,cv_end",,,,,

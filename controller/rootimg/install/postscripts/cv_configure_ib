@@ -1,0 +1,3 @@
+#!/bin/bash
+ip addr add "$(hostname -i | sed "s/10\.141\./10.149./")/16" dev ib0
+

@@ -11,3 +11,4 @@
 "timezone","UTC",,
 "dhcpinterfaces","eno2",,
 "dnsinterfaces","eno2",,
+"dnshandler","ddns",,

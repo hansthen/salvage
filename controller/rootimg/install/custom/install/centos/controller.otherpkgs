@@ -8,3 +8,10 @@ mysql-connector-odbc
 unixODBC
 # Test utility
 sshpass
+# On request
+strace
+tcpdump
+telnet
+minicom
+screen
+
