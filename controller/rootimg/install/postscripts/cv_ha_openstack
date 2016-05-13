@@ -27,7 +27,6 @@ fi
 
 "${mysql[@]}" <<-EOSQL
     SET @@SESSION.SQL_LOG_BIN=0;
-    set global max_connections = 1024;
 
     DELETE FROM mysql.user ;
     CREATE USER 'root'@'%' IDENTIFIED BY 'system' ;
