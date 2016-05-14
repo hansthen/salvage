@@ -190,8 +190,6 @@ yum -y -q install epel-release
 yum -y -q install https://repos.fedorapeople.org/repos/openstack/EOL/openstack-juno/rdo-release-juno-1.noarch.rpm
 sed -i "/^baseurl/s/openstack-juno/EOL\/openstack-juno/" /etc/yum.repos.d/rdo-release.repo
 
-yum-config-manager --disable xcat-otherpkgs* local-centos*
-yum-config-manager --enable base epel extras updates openstack-juno
 yum-config-manager --add-repo http://sourceforge.net/projects/xcat/files/yum/2.9/xcat-core/xCAT-core.repo
 yum-config-manager --add-repo http://sourceforge.net/projects/xcat/files/yum/xcat-dep/rh7/x86_64/xCAT-dep.repo
 
@@ -200,7 +198,11 @@ if [ -z $SITEMASTER ]; then
     reposync -n -r epel -r extras -r updates -r xcat-2-core -r xcat-dep -r openstack-juno -p /install/post/otherpkgs/centos7/x86_64/
 else
     reposync -n -r xcat-otherpkgs0 -p /install/post/otherpkgs/centos7/x86_64/
+    sed s/$SITEMASTER/localhost/ /etc/yum.repos.d/xCAT*.repo
 fi
+
+yum-config-manager --enable xcat-otherpkgs* local-centos*
+yum-config-manager --disable base epel extras updates openstack-juno
 
 createrepo /install/post/otherpkgs/centos7/x86_64/
 (genimage centos7-x86_64-netboot-trinity; packimage centos7-x86_64-netboot-trinity) &
