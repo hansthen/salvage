@@ -2,7 +2,7 @@ FROM centos:latest
 
 RUN yum -y swap -- remove systemd-container* -- install systemd systemd-libs
 RUN yum -y -q install epel-release wget which
-RUN wget http://files.omdistro.org/releases/centos_rhel/omd-1.20.rhel7.x86_64.rpm
+RUN yum install -y --nogpgcheck http://files.omdistro.org/releases/centos_rhel/omd-1.20.rhel7.x86_64.rpm
 RUN yum install -y --nogpgcheck omd-1.20.rhel7.x86_64.rpm
 RUN omd create monitoring
 RUN omd config monitoring set DEFAULT_GUI check_mk
