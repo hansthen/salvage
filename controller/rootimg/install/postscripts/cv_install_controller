@@ -53,13 +53,13 @@ resource ha_disk {
          after-sb-1pri discard-secondary;
          after-sb-2pri disconnect;
        }
-       on controller-1.cluster {
+       on controller-1 {
          device    /dev/drbd1;
          disk      /dev/mapper/vg_root-lv_drbd;
          address   ${ip1}:7789;
          meta-disk internal;
        }
-       on controller-2.cluster {
+       on controller-2 {
          device    /dev/drbd1;
          disk      /dev/mapper/vg_root-lv_drbd;
          address   ${ip2}:7789;
@@ -88,10 +88,10 @@ else
         sleep 1m
     done
     [[ $i = 100 ]] && echo "TIMEOUT: waiting for master node to come up"
-    ssh controller-1.cluster pcs cluster auth $(hostname) -u hacluster -p system
-    ssh controller-1.cluster pcs cluster node add $(hostname)
+    ssh controller-1 pcs cluster auth $(hostname) -u hacluster -p system
+    ssh controller-1 pcs cluster node add $(hostname)
     pcs cluster auth
-    scp -r controller-1.cluster/root/.xcat /root
+    scp -r controller-1/root/.xcat /root
 fi
 pcs cluster start
 
@@ -220,7 +220,7 @@ systemctl restart httpd
 
 #Make xCAT available via the floating IP.
 if grep -v XCATHOST /etc/profile.d/xcat.sh; then
-    echo "export XCATHOST=controller.cluster:3001" >> /etc/profile.d/xcat.sh
+    echo "export XCATHOST=controller:3001" >> /etc/profile.d/xcat.sh
 fi
 
 systemctl enable replicator.timer
