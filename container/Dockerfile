@@ -39,3 +39,9 @@ RUN chmod +x /docker-entrypoint.sh
 
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
 ENTRYPOINT ["/docker-entrypoint.sh"]
+
+RUN yum -y -q install numactl numactl-devel \
+    glibc-devel kernel-headers kernel-tools \
+    pciutils bc less libsysfs-devel libibverbs-devel \
+    libgfortran && yum clean all
+
