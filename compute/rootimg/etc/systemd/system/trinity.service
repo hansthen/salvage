@@ -1,17 +1,17 @@
 [Unit]
 Description=Trinity compute container
-Type=forking
 
 [Service]
-ExecStart=/usr/sbin/trinity-start
-ExecStop=/bin/killall trinity-start ; \
-           /usr/bin/docker stop -t 3 trinity
-ExecReload=/bin/killall trinity-start ; \
-           /usr/bin/docker stop -t 3 trinity ; \
-           /usr/bin/docker rm trinity ; \
-           /usr/bin/docker pull controller:5050/trinity ; \
-           /usr/sbin/trinity-start
+Type=forking
+RemainAfterExit=yes
+ExecStart=/usr/bin/setsid /usr/sbin/trinity-start
+ExecStop=-/usr/bin/killall trinity-start
+ExecStop=-/usr/bin/docker stop trinity
+ExecReload=-/usr/bin/killall trinity-start ; \
+           -/usr/bin/docker stop trinity ; \
+           -/usr/bin/docker rm trinity ; \
+           -/usr/bin/docker pull controller:5050/trinity ; \
+           /usr/bin/setsid /usr/sbin/trinity-start
 
 [Install]
 WantedBy=multi-user.target
-
