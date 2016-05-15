@@ -27,48 +27,61 @@ def make_secret(password):
 
     return tagged_digest_salt
 
-def user_add(username, cn, sn, givenName, password, shell, groups):
+def list_user_uidNumber():
+    base_dn = 'ou=People,dc=local'
+    filter = '(objectclass=person)'
+    attrs = ['uidNumber']
+    for dn, attrs in conn.search_s( base_dn, ldap.SCOPE_SUBTREE, filter, attrs ):
+        yield attrs['uidNumber'][0]
+
+def user_add(username, usernumber, cn, sn, givenName, password, shell, groups):
     """Add a user to the LDAP"""
-    uidNumber = increment_uid()
 
-    # first add the group 
-    dn = 'cn=%s,ou=Group,dc=local' % username
-    add_record = [
-     ('objectclass', ['top','posixGroup']),
-     ('cn', [username] ),
-     ('memberuid', [uidNumber] ),
-     ('gidNumber', [uidNumber])
-    ]
-    conn.add_s(dn, add_record)
+    if usernumber in list_user_uidNumber():
+        print "Usernumber already exists"
+    else:
+       if not usernumber:
+           uidNumber = increment_uid()
+       else:
+           uidNumber = usernumber
 
-    # now add the user 
-    password = make_secret(password)
-    dn = 'uid=%s,ou=People,dc=local' % username
+       # first add the group 
+       dn = 'cn=%s,ou=Group,dc=local' % username
+       add_record = [
+        ('objectclass', ['top','posixGroup']),
+        ('cn', [username] ),
+        ('memberuid', [uidNumber] ),
+        ('gidNumber', [uidNumber])
+       ]
+       conn.add_s(dn, add_record)
 
-    if not cn:
-        cn = username
-    if not sn:
-        sn = username
+       # now add the user 
+       password = make_secret(password)
+       dn = 'uid=%s,ou=People,dc=local' % username
 
-    add_record = [
-     ('objectclass', ['top','person', 'organizationalPerson', 'inetOrgPerson', 'posixAccount', 'shadowAccount']),
-     ('uid', [username] ),
-     ('cn', [cn] ),
-     ('sn', [sn] ),
-     ('userPassword', [password] ), 
-     ('loginShell', [shell] ),
-     ('uidNumber', [uidNumber] ),
-     ('gidNumber', [uidNumber] ),
-     ('homeDirectory', ['/home/%s' % username] )
-    ]
-    if givenName:
-        add_record.append(('givenName', [givenName] ))
+       if not cn:
+           cn = username
 
-    conn.add_s(dn, add_record)
+       add_record = [
+        ('objectclass', ['top','person', 'organizationalPerson', 'inetOrgPerson', 'posixAccount', 'shadowAccount']),
+        ('uid', [username] ),
+        ('cn', [cn] ),
+        ('userPassword', [password] ), 
+        ('loginShell', [shell] ),
+        ('uidNumber', [uidNumber] ),
+        ('gidNumber', [uidNumber] ),
+        ('homeDirectory', ['/home/%s' % username] )
+       ]
+       if sn:
+           add_record.append(('sn', [sn] ))
+       if givenName:
+           add_record.append(('givenName', [givenName] ))
 
-    if groups:
-        for group in groups:
-            group_addusers(group, [username])
+       conn.add_s(dn, add_record)
+
+       if groups:
+           for group in groups:
+               group_addusers(group, [username])
 
 
 def user_delete(username):
@@ -111,6 +124,7 @@ def user_list():
         print attrs['uid'][0]
 
 
+<<<<<<< HEAD
 def user_modify(username, **kwargs):
     """Modify a user"""
     dn = 'uid=%s,ou=People,dc=local' % username
@@ -124,6 +138,8 @@ def user_modify(username, **kwargs):
         mod_attrs.append((ldap.MOD_ADD, key, value))
     conn.modify_s(dn, mod_attrs)
 
+=======
+>>>>>>> 54dc6bc... Fixes #688
 
 def user_reset(username, password):
     """Reset a users password"""
@@ -165,19 +181,29 @@ def group_delete(groupname):
     except Exception, error:
         pass
 
+def list_group_gidNumber():
+    base_dn = 'ou=Group,dc=local'
+    filter = '(objectclass=posixGroup)'
+    attrs = ['uidNumber']
+    for dn, attrs in conn.search_s( base_dn, ldap.SCOPE_SUBTREE, filter ):
+        yield attrs['gidNumber'][0]
 
-def group_add(groupname):
+def group_add(groupname, groupnumber):
     """Add a group to the LDAP"""
-    gidNumber = increment_gid()
-
-    # first add the group 
-    dn = 'cn=%s,ou=Group,dc=local' % groupname
-    add_record = [
-     ('objectclass', ['top','posixGroup']),
-     ('cn', [groupname] ),
-     ('gidNumber', [gidNumber])
-    ]
-    conn.add_s(dn, add_record)
+    if not groupnumber:
+       gidNumber = increment_gid()
+    elif groupnumber in list_group_gidNumber():
+       print "Groupnumber already exists"
+    else:
+       gidNumber = groupnumber
+       #  first add the group 
+       dn = 'cn=%s,ou=Group,dc=local' % groupname
+       add_record = [
+        ('objectclass', ['top','posixGroup']),
+        ('cn', [groupname] ),
+        ('gidNumber', [gidNumber])
+       ]
+       conn.add_s(dn, add_record)
 
 
 def group_addusers(groupname, username):
@@ -266,6 +292,7 @@ group_commands = groups.add_subparsers(dest='command')
 # Do the user commands
 command = user_commands.add_parser('add', help='add a user')
 command.add_argument('username')
+command.add_argument('--usernumber')
 command.add_argument('--password', required=True) 
 command.add_argument('--cn', metavar="COMMON NAME")
 command.add_argument('--sn', metavar="SURNAME")
@@ -295,6 +322,7 @@ command = user_commands.add_parser('list', help='list users')
 # Now do the group commands
 command = group_commands.add_parser('add', help='add a group')
 command.add_argument('groupname')
+command.add_argument('--groupnumber')
 
 command = group_commands.add_parser('show', help='show a group')
 command.add_argument('groupname')
