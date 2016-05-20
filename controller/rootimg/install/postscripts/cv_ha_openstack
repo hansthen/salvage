@@ -72,12 +72,7 @@ pcs -f config resource group add grp_OpenStack rabbitmq keystone glance nova-con
 #pcs -f config resource clone grp_OpenStack clone-node-max=1 notify=false
 
 pcs -f config constraint colocation add grp_OpenStack ip
-# pcs -f config constraint order start fs_drbd then start galera
-# This is only required when we run xCAT from inside galera
-# pcs -f config constraint order start galera then start xCAT
 pcs -f config constraint order start galera-clone then start grp_OpenStack
-#pcs -f config constraint order start keystone then start glance
-#pcs -f config constraint order start keystone then start nova-controller
 
 pcs cluster cib-push config
 
@@ -108,7 +103,7 @@ source /etc/profile.d/xcat.sh
 sed -e "s/<TENANT>/admin/g" \
     -e "s/<USER>/admin/g" \
     -e "s/<PASSWORD>/system/g" \
-    -e "s/<OPENSTACK>/10.141.255.254/g" \
+    -e "s/<OPENSTACK>/controller/g" \
     /trinity/openstack/keystonerc > /root/keystonerc_admin
 chmod go-rw /root/keystonerc_admin
 scp /root/keystonerc_admin controller-2.cluster:/root/keystonerc_admin
@@ -136,12 +131,19 @@ CLOUD_CONTAINER_FORMAT="bare"
 LOGIN_IMAGE="login"
 LOGIN_SETUP="/trinity/login/mini-setup.sh"
 
-glance image-create \
-    --name "${LOGIN_IMAGE}" \
+#glance image-create \
+#    --name "${LOGIN_IMAGE}" \
+#    --disk-format "${CLOUD_IMAGE_FORMAT}" \
+#    --container-format "${CLOUD_CONTAINER_FORMAT}" \
+#    --visibility public \
+#    --file "${CLOUD_IMAGE}"
+
+os image create \
     --disk-format "${CLOUD_IMAGE_FORMAT}" \
     --container-format "${CLOUD_CONTAINER_FORMAT}" \
-    --visibility public \
+    --public \
     --file "${CLOUD_IMAGE}"
+    "${LOGIN_IMAGE}"
 
 nova secgroup-add-rule default tcp 1 65535 0.0.0.0/0
 nova secgroup-add-rule default icmp -1 -1 0.0.0.0/0
