@@ -53,13 +53,13 @@ resource ha_disk {
          after-sb-1pri discard-secondary;
          after-sb-2pri disconnect;
        }
-       on controller-1 {
+       on controller-1.cluster {
          device    /dev/drbd1;
          disk      /dev/mapper/vg_root-lv_drbd;
          address   ${ip1}:7789;
          meta-disk internal;
        }
-       on controller-2 {
+       on controller-2.cluster {
          device    /dev/drbd1;
          disk      /dev/mapper/vg_root-lv_drbd;
          address   ${ip2}:7789;
