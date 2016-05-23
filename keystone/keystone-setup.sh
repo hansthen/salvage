@@ -1,37 +1,37 @@
 #! /usr/bin/env bash
 KS_CONT="keystone"
-docker exec ${KS_CONT} os \
+docker exec ${KS_CONT} openstack \
        --os-token system \
        --os-endpoint http://controller:35357/v2.0 \
        tenant-create --description "Admin Tenant" \
        admin
 
-docker exec ${KS_CONT} os \
+docker exec ${KS_CONT} openstack \
        --os-token system \
        --os-endpoint http://controller:35357/v2.0 \
        user create --pass system \
        admin
 
-docker exec ${KS_CONT} os \
+docker exec ${KS_CONT} openstack \
        --os-token system \ 
        --os-endpoint http://controller:35357/v2.0 \
        role create \
        admin
 
-docker exec ${KS_CONT} os \
+docker exec ${KS_CONT} openstack \
        --os-token system \
        --os-endpoint http://controller:35357/v2.0 \
        role add --user admin \
        --project admin \ 
        admin
 
-docker exec ${KS_CONT} os \
+docker exec ${KS_CONT} openstack \
        --os-token system \
        --os-endpoint http://controller:35357/v2.0 \
        project create --description "Service Tenant"
        service
 
-docker exec ${KS_CONT} os \
+docker exec ${KS_CONT} openstack \
        --os-token system \
        --os-endpoint http://controller:35357/v2.0 \
        service create \
@@ -39,7 +39,7 @@ docker exec ${KS_CONT} os \
        --description "OpenStack Identity" \
        identity
 
-docker exec ${KS_CONT} os \
+docker exec ${KS_CONT} openstack \
        --os-token system \
        --os-endpoint http://controller:35357/v2.0 \
        endpoint create \
