@@ -1,10 +1,9 @@
 [Unit]
 Description=Dockerized Glance
-Requires=keystone.service galera.service
-After=keystone.service galera.service
+Requires=docker.service
+After=docker.service
 
 [Service]
-Restart=always
 ExecStartPre=-/usr/bin/docker create --net=host --privileged=true --name=glance controller:5050/glance
 ExecStart=/usr/bin/docker start -a glance
 ExecStop=/usr/bin/docker stop -t 2 glance
