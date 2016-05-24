@@ -2,18 +2,15 @@
 Description=Dockerized galera service
 Requires=docker.service
 After=docker.service
-Before=xcatd.service
 
 [Service]
-Alias=mariadb
-Restart=always
 ExecStartPre=-/usr/bin/docker create --net=host --privileged=true \
                 --name=galera controller:5050/galera \
                 --wsrep_cluster_address=gcomm://10.141.255.253,10.141.255.252?pc.wait_prim=no \
                 --wsrep_cluster_name=trinity_db
 ExecStart=/usr/bin/docker start -a galera
 ExecStop=/usr/bin/docker stop -t 300 galera
-TimeoutSec=600
+TimeoutStartSec=600
 
 [Install]
 WantedBy=multi-user.target
