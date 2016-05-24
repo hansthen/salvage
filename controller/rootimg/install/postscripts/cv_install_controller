@@ -71,6 +71,7 @@ EOF
 drbdadm create-md ha_disk
 modprobe drbd
 drbdadm up ha_disk
+drbdadm connect all
 
 #-----------------------------------------------------------------------------------------------
 # Install pacemaker

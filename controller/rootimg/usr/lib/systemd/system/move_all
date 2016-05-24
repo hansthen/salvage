@@ -1,9 +1,0 @@
-for file in *; do 
-    profile=${file%.service}
-    service=${profile//-/_}
-    echo $profile
-    if [[ -d /trinity/${service} ]]; then
-         mkdir -p /trinity/${service}/host/rootimg/usr/lib/systemd/system
-         mv $file /trinity/${service}/host/rootimg/usr/lib/systemd/system
-    fi
-done
