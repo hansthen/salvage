@@ -3,7 +3,7 @@ KS_CONT="keystone"
 docker exec ${KS_CONT} openstack \
        --os-token system \
        --os-endpoint http://controller:35357/v2.0 \
-       user create --password system \ 
+       user create --password system \
        glance
 
 docker exec ${KS_CONT} openstack \
