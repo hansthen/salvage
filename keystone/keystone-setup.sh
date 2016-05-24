@@ -13,7 +13,7 @@ docker exec ${KS_CONT} openstack \
        admin
 
 docker exec ${KS_CONT} openstack \
-       --os-token system \ 
+       --os-token system \
        --os-endpoint http://controller:35357/v2.0 \
        role create \
        admin
@@ -22,13 +22,13 @@ docker exec ${KS_CONT} openstack \
        --os-token system \
        --os-endpoint http://controller:35357/v2.0 \
        role add --user admin \
-       --project admin \ 
+       --project admin \
        admin
 
 docker exec ${KS_CONT} openstack \
        --os-token system \
        --os-endpoint http://controller:35357/v2.0 \
-       project create --description "Service Tenant"
+       project create --description "Service Tenant" \
        service
 
 docker exec ${KS_CONT} openstack \
@@ -46,5 +46,5 @@ docker exec ${KS_CONT} openstack \
        --publicurl http://controller:5000/v2.0 \
        --internalurl http://controller:5000/v2.0 \
        --adminurl http://controller:35357/v2.0 \
-       --region regionOne \ 
+       --region regionOne \
        keystone
