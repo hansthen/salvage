@@ -96,8 +96,6 @@ else
 fi
 pcs cluster start
 
-systemctl enable pacemaker
-systemctl enable corosync
 systemctl enable opensm
 systemctl start opensm
 systemctl enable ntpd
