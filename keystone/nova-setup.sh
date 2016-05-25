@@ -20,12 +20,7 @@ $KEYSTONE \
 
 $KEYSTONE \
        endpoint create --region RegionOne \
-       compute public http://controller:8774/v2/%\(tenant_id\)s
-
-$KEYSTONE \
-       endpoint create --region RegionOne \
-       compute internal http://controller:8774/v2/%\(tenant_id\)s
-
-$KEYSTONE \
-       endpoint create --region RegionOne \
-       compute admin http://controller:8774/v2/%\(tenant_id\)s
+       --publicurl http://controller:8774/v2/%\(tenant_id\)s \
+       --internalurl http://controller:8774/v2/%\(tenant_id\)s \
+       --adminurl http://controller:8774/v2/%\(tenant_id\)s \
+       compute

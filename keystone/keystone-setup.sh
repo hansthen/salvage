@@ -9,6 +9,8 @@ KEYSTONE="docker exec keystone openstack \
 #------------------------------------------------------------------
 # First create the endpoints. We use the administrative URL for this.
 # http://docs.openstack.org/liberty/install-guide-rdo/keystone-services.html
+# This documentation does not work very well, the commandline API turns out to 
+# be different than what's documented.
 #------------------------------------------------------------------
 $KEYSTONE \
        service create \
@@ -19,17 +21,10 @@ $KEYSTONE \
 $KEYSTONE \
        endpoint create \
        --region regionOne \
-       identity public http://controller:5000/v2.0
-
-$KEYSTONE \
-       endpoint create \
-       --region regionOne \
-       identity internal http://controller:5000/v2.0
-
-$KEYSTONE \
-       endpoint create \
-       --region regionOne \
-       identity admin http://controller:35357/v2.0
+       --publicurl http://controller:5000/v2.0 \
+       --internalurl http://controller:5000/v2.0 \
+       --adminurl http://controller:35357/v2.0 \
+       identity
 
 #------------------------------------------------------------------
 # Next we create users and roles for the administrative user and tenant/
@@ -38,13 +33,11 @@ $KEYSTONE \
 # section 1
 $KEYSTONE \
        project create \
-       --domain default \
        --description "Admin Project" \
        admin
 
 $KEYSTONE \
        user create \
-       --domain default \
        --password system \
        admin
 

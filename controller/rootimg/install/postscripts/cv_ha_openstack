@@ -138,7 +138,7 @@ LOGIN_SETUP="/trinity/login/mini-setup.sh"
 #    --visibility public \
 #    --file "${CLOUD_IMAGE}"
 
-os image create \
+openstack image create \
     --disk-format "${CLOUD_IMAGE_FORMAT}" \
     --container-format "${CLOUD_CONTAINER_FORMAT}" \
     --public \

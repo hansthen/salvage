@@ -20,13 +20,8 @@ $KEYSTONE \
 
 $KEYSTONE \
        endpoint create --region RegionOne \
-       image public http://controller:9292
-
-$KEYSTONE \
-       endpoint create --region RegionOne \
-       image internal http://controller:9292
-
-$KEYSTONE \
-       endpoint create --region RegionOne \
-       image admin http://controller:9292
+       --publicurl http://controller:9292 \
+       --internalurl http://controller:9292 \
+       --adminurl http://controller:9292 \
+       image
 
