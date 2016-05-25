@@ -8,7 +8,6 @@ KEYSTONE="docker exec keystone openstack \
 
 $KEYSTONE \
        user create \
-       --domain default \
        --password system \
        nova
 
