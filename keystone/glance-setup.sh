@@ -1,30 +1,32 @@
 #! /usr/bin/env bash
-KS_CONT="keystone"
-docker exec ${KS_CONT} openstack \
+#------------------------------------------------------------------
+# Setup glance service
+#------------------------------------------------------------------
+KEYSTONE="docker exec keystone openstack \
        --os-token system \
-       --os-endpoint http://controller:35357/v2.0 \
-       user create --password system \
+       --os-url http://controller:35357/v2.0"
+
+$KEYSTONE \
+       user create \
+       --domain default \
+       --password system \
        glance
 
-docker exec ${KS_CONT} openstack \
-       --os-token system \
-       --os-endpoint http://controller:35357/v2.0 \
-       role add --user glance --project service \
-       admin
+$KEYSTONE role add --project service --user glance admin
 
-docker exec ${KS_CONT} openstack \
-       --os-token system \
-       --os-endpoint http://controller:35357/v2.0 \
-       service-create --name glance \
-       --description "OpenStack Image Service" \
-       image
+$KEYSTONE \
+       service create --name glance \
+       --description "OpenStack Image service" image
 
-docker exec ${KS_CONT} openstack \
-       --os-token system \
-       --os-endpoint http://controller:35357/v2.0 endpoint create \
-       --publicurl http://controller:8774/v2/%\(tenant_id\)s \
-       --internalurl http://controller:8774/v2/%\(tenant_id\)s \
-       --adminurl http://controller:8774/v2/%\(tenant_id\)s \
-       --region regionOne \
-       compute
+$KEYSTONE \
+       endpoint create --region RegionOne \
+       image public http://controller:9292
+
+$KEYSTONE \
+       endpoint create --region RegionOne \
+       image internal http://controller:9292
+
+$KEYSTONE \
+       endpoint create --region RegionOne \
+       image admin http://controller:9292
 

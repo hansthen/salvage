@@ -1,30 +1,31 @@
 #! /usr/bin/env bash
-KS_CONT="keystone"
-docker exec ${KS_CONT} openstack \
+#------------------------------------------------------------------
+# Setup nova service
+#------------------------------------------------------------------
+KEYSTONE="docker exec keystone openstack \
        --os-token system \
-       --os-endpoint http://controller:35357/v2.0 \
-       user create --password system \
+       --os-url http://controller:35357/v2.0"
+
+$KEYSTONE \
+       user create \
+       --domain default \
+       --password system \
        nova
 
-docker exec ${KS_CONT} openstack \
-       --os-token system \
-       --os-endpoint http://controller:35357/v2.0 \
-       role add --user nova --project service \
-       admin
+$KEYSTONE role add --project service --user nova admin
 
-docker exec ${KS_CONT} openstack \
-       --os-token system \
-       --os-endpoint http://controller:35357/v2.0 \
-       service-create --name nova \
-       --description "OpenStack Compute Service" \
-       compute
+$KEYSTONE \
+       service create --name nova \
+       --description "OpenStack Compute service" compute
 
-docker exec ${KS_CONT} openstack \
-       --os-token system \
-       --os-endpoint http://controller:35357/v2.0 endpoint create \
-       --publicurl http://controller:8774/v2/%\(tenant_id\)s \
-       --internalurl http://controller:8774/v2/%\(tenant_id\)s \
-       --adminurl http://controller:8774/v2/%\(tenant_id\)s \
-       --region regionOne \
-       compute
+$KEYSTONE \
+       endpoint create --region RegionOne \
+       compute public http://controller:8774/v2/%\(tenant_id\)s
 
+$KEYSTONE \
+       endpoint create --region RegionOne \
+       compute internal http://controller:8774/v2/%\(tenant_id\)s
+
+$KEYSTONE \
+       endpoint create --region RegionOne \
+       compute admin http://controller:8774/v2/%\(tenant_id\)s
