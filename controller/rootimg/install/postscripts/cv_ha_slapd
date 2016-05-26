@@ -6,7 +6,7 @@
 me=$(hostname | egrep -o '[[:digit:]]*' | head -n1)
 let other=me==1?2:1;
 
-cat << EOF > /etc/openldap/cv_syncrepl
+cat << EOF > /etc/openldap/cv_syncrepl.conf
 moduleload syncprov
 serverid ${me}
 
@@ -33,6 +33,8 @@ access to *
 
 EOF
 
-chmod go-r /etc/openldap/cv_syncrepl
+if ! grep cv_syncrepl.conf /etc/openldap/slapd.conf; then
+    echo "include         /etc/openldap/cv_syncrepl.conf" >> /etc/openldap/slapd.conf"
+fi
 systemctl restart slapd
 
