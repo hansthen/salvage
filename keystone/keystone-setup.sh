@@ -51,7 +51,7 @@ $KEYSTONE \
 
 # section 2
 $KEYSTONE \
-       project create --domain default \
+       project create \
        --description "Service Project" \
        service
 
