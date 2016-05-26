@@ -1,7 +1,7 @@
 # /etc/sysconfig/docker
 
 # Modify these options if you want to change the way the docker daemon runs
-OPTIONS=--insecure-registry controller:5050 --insecure-registry 192.168.1.254:5050 --bip=10.146.255.254/16 --fixed-cidr=10.146.255.255/16 
+OPTIONS="--insecure-registry controller:5050 --insecure-registry 192.168.1.254:5050 --bip=10.146.255.254/16 --fixed-cidr=10.146.255.255/16"
 
 # Location used for temporary files, such as those created by
 # docker load and build operations. Default is /var/lib/docker/tmp
