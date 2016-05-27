@@ -1,17 +1,10 @@
-import os
-import shutil
-from ConfigParser import SafeConfigParser
-from bottle import Bottle,get,put,post,delete,run,request,response,abort
+import re
+import api
 import json
 import requests
-from collections import defaultdict
-import re
-import subprocess
-import base64
-import time
-import tzlocal
-import api
 import ManageCluster
+from ConfigParser import SafeConfigParser
+from bottle import Bottle,get,put,post,delete,run,request,response,abort
 
 
 conf_file='/etc/trinity/trinity_api.conf'
@@ -27,18 +20,6 @@ trinity_password=config.get('xcat','trinity_password')
 node_pref=config.get('cluster','node_pref')
 cont_pref=config.get('cluster','cont_pref')
 
-xcat_version = subprocess.check_output('/opt/xcat/bin/lsxcatd -v', shell=True)
-version = re.search(r'Version \d+\.(\d+)(\.\d+)?\s', xcat_version)
-if version and int(version.group(1)) < 10:
-    password_parm = 'password'
-else:
-    password_parm = 'userPW'
-
-# Globals here
-# state_has_changed = False
-# cached_detailed_overview = {}
-   
-######################################################################### 
 trinity = Bottle()
 
 @trinity.get('/trinity/v<version:float>/')
