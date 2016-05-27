@@ -1,7 +1,0 @@
-#!/bin/bash
-NAME='trinity_api'
-EXE="/usr/bin/$NAME"
-LOGFILE="/var/log/trinity/$NAME.log"
-nohup $EXE > $LOGFILE 2>&1 & 
-
-
