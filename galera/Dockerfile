@@ -1,17 +1,14 @@
-FROM ubuntu:14.04
+FROM centos:latest
 MAINTAINER hans.then@clustervision.com
 
-ENV DEBIAN_FRONTEND noninteractive
+COPY galera.repo /etc/yum.repos.d/
+# Install required packages and MariaDB Vendor Repo
+RUN yum -y update && yum clean all && yum -y install epel-release && \
+    groupadd -r mysql && useradd -r -g mysql mysql && \
+    yum -y install galera-3 galera-arbitrator-3 percona-xtrabackup-24 mysql-wsrep-5.6 lsof less which socat pwgen && yum clean all
 
-RUN apt-get update
-RUN apt-get install -y software-properties-common
-RUN apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 BC19DDBA
-RUN add-apt-repository 'deb http://releases.galeracluster.com/ubuntu trusty main'
-RUN apt-get update
-RUN apt-get install -y galera-3 galera-arbitrator-3 mysql-wsrep-5.6 rsync lsof
 COPY my.cnf /etc/mysql/my.cnf
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
 VOLUME /var/lib/mysql
-
 
