@@ -119,6 +119,7 @@ nova network-create \
        --fixed-range-v4 192.168.32.0/24 \
        --fixed-cidr 192.168.32.0/24 \
        --bridge-interface ${PRI_NIC} \
+       --multi-host T \
        --bridge ${BRIDGE} \
        ${NETWORK_LABEL}
 
