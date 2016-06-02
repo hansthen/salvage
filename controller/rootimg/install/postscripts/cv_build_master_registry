@@ -32,6 +32,7 @@ profiles=(
 VERSION=$(cat /trinity/version | head -2 | tail -1)
 
 for profile in "${profiles[@]}"; do
-  docker build --rm=true -t ${REGISTRY}/${profile}:${VERSION} ${TOPDIR}/${profile}
+  docker build -t ${REGISTRY}/${profile}:${VERSION} ${TOPDIR}/${profile}
+  docker build --rm=true -t ${REGISTRY}/${profile} ${TOPDIR}/${profile}
   docker push ${REGISTRY}/${profile}
 done
