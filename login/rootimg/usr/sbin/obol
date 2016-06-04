@@ -140,7 +140,6 @@ def user_modify(username, **kwargs):
 
 def user_reset(username, password):
     """Reset a users password"""
-    password = make_secret(password)
     dn = 'uid=%s,ou=People,dc=local' % username
     conn.passwd_s(dn, None, password)
 
