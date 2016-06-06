@@ -67,6 +67,7 @@ class TrinityAPI(object):
         self.not_admin = 'Only admin has permission!'
         self.no_nodes = 'Not enough resources!'
         self.xcat_error = 'xCAT error'
+	self.no_enough_nodes='not all resources are available'
 
     # Authenticate against Keystone.
     def authenticate(self):
@@ -377,6 +378,12 @@ class TrinityAPI(object):
                     h_nodes = self.hardware_nodes(hardware)
 
                     if add_num > h_nodes['unallocated']:
+                     if h_nodes['unallocated'] > 0:
+                      for node in h_nodes['list_unallocated'][:d_nodes]:
+                        node_list.append(node)
+                        adds_list.append(node)
+                        ret['error_msg'] = self.no_enough_nodes
+                     else:
                         ret['error'] = self.no_nodes
                         return ret
 
@@ -388,6 +395,12 @@ class TrinityAPI(object):
                 h_nodes = self.hardware_nodes(hardware)
                 # Not DRY
                 if d_nodes > h_nodes['unallocated']:
+                 if h_nodes['unallocated'] > 0:
+                  for node in h_nodes['list_unallocated'][:d_nodes]:
+                    node_list.append(node)
+                    adds_list.append(node)
+                    ret['error_msg'] = self.no_enough_nodes
+                 else:
                     ret['error'] = self.no_nodes
                     return ret
 

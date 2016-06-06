@@ -186,13 +186,14 @@ class Modify (object):
   # makehost and makedns for cluster
   cont_subs_list=[]
   node_subs_list=[]
-  for cont in ret["subsList"]:
+  if 'error' not in ret:
+   for cont in ret["subsList"]:
      cont_subs_list.append(cont)
      subtracted_node=cont.replace(req.cont_pref,req.node_pref,1)
      node_subs_list.append(subtracted_node)
-  cont_subs_string=",".join(cont_subs_list)
-  node_subs_string=",".join(node_subs_list)
-  if cont_subs_list:
+   cont_subs_string=",".join(cont_subs_list)
+   node_subs_string=",".join(node_subs_list)
+   if cont_subs_list:
     verb='DELETE'
     payload={}
     path='/nodes/'+cont_subs_string+'/dns' 
@@ -204,14 +205,15 @@ class Modify (object):
 
   cont_adds_list=[]
   node_adds_list=[]
-  for cont in ret["addsList"]:
+  if 'error' not in ret:
+   for cont in ret["addsList"]:
      cont_adds_list.append(cont)
      added_node=cont.replace(req.cont_pref,req.node_pref,1)
      node_adds_list.append(added_node)
-  cont_adds_string=",".join(cont_adds_list)
-  node_adds_string=",".join(node_adds_list)
+   cont_adds_string=",".join(cont_adds_list)
+   node_adds_string=",".join(node_adds_list)
 
-  if cont_adds_list:
+   if cont_adds_list:
     verb='POST'
     payload={}
     path='/nodes/'+cont_adds_string+'/host' 
@@ -222,7 +224,7 @@ class Modify (object):
     payload={"command":["docker stop trinity; docker rm trinity; service trinity restart"]}
     path='/nodes/'+node_adds_string+'/nodeshell'
     req.xcat(verb=verb,path=path,payload=payload)
-  api.state_has_changed=True
+   api.state_has_changed=True
 
   #----------------------------------------------------------------------
   # Now create the login node
@@ -363,7 +365,7 @@ class Modify (object):
       "server":{
         "name":login_cluster,
         "imageRef":image_id,
-        "flavorRef": "26df50db-3661-4287-8456-9ff31d608013",
+        "flavorRef": "448f9710-f5b5-454c-b89a-fc8d691d9d87",
         "user_data": login_data_encoded,
         "security_groups": [{"name":"default"}],
         "max_count": 1,
