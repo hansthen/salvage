@@ -1,4 +1,6 @@
 #! /usr/bin/env bash
+sleep 10s
+echo ; docker ps
 IP=$(hostname -i)
 docker exec osks keystone --os-token system --os-endpoint http://${IP}:35357/v2.0 tenant-create --name admin --description "Admin Tenant"
 docker exec osks keystone --os-token system --os-endpoint http://${IP}:35357/v2.0 user-create --name admin --pass system 
