@@ -18,7 +18,7 @@ $KEYSTONE \
        --description "OpenStack Compute service" compute
 
 $KEYSTONE \
-       endpoint create --region RegionOne \
+       endpoint create --region regionOne \
        --publicurl http://controller:8774/v2/%\(tenant_id\)s \
        --internalurl http://controller:8774/v2/%\(tenant_id\)s \
        --adminurl http://controller:8774/v2/%\(tenant_id\)s \

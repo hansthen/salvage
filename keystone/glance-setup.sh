@@ -18,7 +18,7 @@ $KEYSTONE \
        --description "OpenStack Image service" image
 
 $KEYSTONE \
-       endpoint create --region RegionOne \
+       endpoint create --region regionOne \
        --publicurl http://controller:9292 \
        --internalurl http://controller:9292 \
        --adminurl http://controller:9292 \
