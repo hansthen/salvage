@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+!/usr/bin/env bash
 ##title          : cv_build_master_registry
 ##description    : Sets up all docker containers on master
 ##                 The following services are dockerized
