@@ -142,7 +142,7 @@ openstack image create \
     --disk-format "${CLOUD_IMAGE_FORMAT}" \
     --container-format "${CLOUD_CONTAINER_FORMAT}" \
     --public \
-    --file "${CLOUD_IMAGE}"
+    --file "${CLOUD_IMAGE}" \
     "${LOGIN_IMAGE}"
 
 nova secgroup-add-rule default tcp 1 65535 0.0.0.0/0
