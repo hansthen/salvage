@@ -27,10 +27,14 @@ cp -LrT /trinity/compute/rootimg $installroot
 chroot $installroot chkconfig rdma on
 chroot $installroot chkconfig ntpd on
 # openvswitch does not need to be running
-#chroot $installroot chkconfig openvswitch off
+chroot $installroot chkconfig openvswitch off
 # These will be started in the postscriptt.
 chroot $installroot chkconfig trinity off
 chroot $installroot chkconfig docker off
+
+# Disable docker storage setup.
+sed -i -n '/Wants=docker-storage-setup.service/!p' \
+    $installroot/usr/lib/systemd/system/docker.service
 
 echo "mlx4_ib" > $installroot/etc/modules-load.d/mlx4_ib.conf
 
