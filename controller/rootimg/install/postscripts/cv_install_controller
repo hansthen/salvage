@@ -249,8 +249,7 @@ service httpd restart
 yum -y -q install perl-JSON
 
 # Set up the xCAT web service
-useradd trinity
-echo "trinity" | passwd trinity --stdin
+useradd trinity -d /var/run/trinity -s /sbin/nologin
 source /etc/profile.d/xcat.sh
 export HOME=/root
 tabch key=xcat,username=trinity passwd.password=trinity
