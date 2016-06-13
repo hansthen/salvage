@@ -34,8 +34,14 @@ else
     # setup repositories
     yum -y -q install $(grep -v ^# $REPODIR/controller/rootimg/install/custom/install/centos/controller.pkglist)
     yum -y -q install epel-release
-    yum -y -q install https://repos.fedorapeople.org/repos/openstack/EOL/openstack-juno/rdo-release-juno-1.noarch.rpm
-    sed -i "/^baseurl/s/openstack-juno/EOL\/openstack-juno/" /etc/yum.repos.d/rdo-release.repo
+cat << EOF > /etc/yum.repos.d/rdo-juno-release.repo
+[openstack-juno]
+name=OpenStack Juno Repository
+baseurl=http://repos.fedorapeople.org/repos/openstack/EOL/openstack-juno/epel-7/
+enabled=1
+skip_if_unavailable=0
+gpgcheck=0
+EOF
 
     wget --no-check-certificate http://sourceforge.net/projects/xcat/files/yum/2.9/xcat-core/xCAT-core.repo -O /etc/yum.repos.d/xCAT-core.repo
     wget --no-check-certificate http://sourceforge.net/projects/xcat/files/yum/xcat-dep/rh7/x86_64/xCAT-dep.repo -O /etc/yum.repos.d/xCAT-dep.repo
@@ -187,8 +193,14 @@ exportfs -a
 # Selective updates
 #--------------------------------------------------------------------------------------
 yum -y -q install epel-release
-yum -y -q install https://repos.fedorapeople.org/repos/openstack/EOL/openstack-juno/rdo-release-juno-1.noarch.rpm
-sed -i "/^baseurl/s/openstack-juno/EOL\/openstack-juno/" /etc/yum.repos.d/rdo-release.repo
+cat << EOF > /etc/yum.repos.d/rdo-juno-release.repo
+[openstack-juno]
+name=OpenStack Juno Repository
+baseurl=http://repos.fedorapeople.org/repos/openstack/EOL/openstack-juno/epel-7/
+enabled=1
+skip_if_unavailable=0
+gpgcheck=0
+EOF
 
 yum-config-manager --add-repo http://sourceforge.net/projects/xcat/files/yum/2.9/xcat-core/xCAT-core.repo
 yum-config-manager --add-repo http://sourceforge.net/projects/xcat/files/yum/xcat-dep/rh7/x86_64/xCAT-dep.repo
