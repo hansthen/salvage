@@ -1,6 +1,0 @@
-read ETH1 ETH2 ETH3 <<<$(ls /sys/class/net/ | grep "^e" | sort | head -3)
-mac=$(ip link show dev $ETH3 | tail -1 | awk '{print $2}')
-decimal=$(python -c "print '.'.join([str(int(c,16)) for c in '$mac'.split(':')])")
-port=$(snmpwalk -v2c -c public switch .1.3.6.1.2.1.17.7.1.2.2.1.2 | grep $decimal | awk '{print $4}')
-sed -i /etc/sysconfig/network-scripts/ifcfg-$ETH3 -e "s/IPADDR0=192.168.192.250/IPADDR0=192.168.192.${port}/g"
-echo "configured ifcfg-${ETH3} to 192.168.192.${port}"

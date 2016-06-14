@@ -1,2 +1,0 @@
-#node,bmc,bmcport,taggedvlan,bmcid,username,password,comments,disable
-"compute","/\z/-bmc/","0",,,,,,

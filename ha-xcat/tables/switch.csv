@@ -1,2 +1,0 @@
-#node,switch,port,vlan,interface,comments,disable
-"compute","switch","|\D+(\d+)|e($1+0)|",,,,
