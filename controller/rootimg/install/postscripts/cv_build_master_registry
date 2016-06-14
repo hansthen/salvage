@@ -31,6 +31,6 @@ profiles=(
 keystone_endpoint="http://$(hostname -i):35357/v2.0"
 
 for profile in "${profiles[@]}"; do
-  docker build --rm=true -t ${REGISTRY}/${profile} ${TOPDIR}/${profile}
+  docker build $@ --rm=true -t ${REGISTRY}/${profile} ${TOPDIR}/${profile}
   docker push ${REGISTRY}/${profile}
 done
