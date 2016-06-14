@@ -13,9 +13,9 @@ service xinetd start
 # This is a temporary measure 
 # The rpm should either be in the local repo 
 # or we should make sure that we download a consistent version of the rpm
-wget https://mathias-kettner.de/download/check_mk-agent-1.2.4p5-1.noarch.rpm
-wget https://mathias-kettner.de/download/check_mk-agent-logwatch-1.2.4p5-1.noarch.rpm
-yum install -y check_mk-agent*.rpm
+#wget https://mathias-kettner.de/download/check_mk-agent-1.2.4p5-1.noarch.rpm
+#wget https://mathias-kettner.de/download/check_mk-agent-logwatch-1.2.4p5-1.noarch.rpm
+yum install -y check_mk-agent check_mk-agent-logwatch
 service xinetd restart
 iptables -F
 echo "$0 finished @ $(date)" >> /var/log/postinstall.log
