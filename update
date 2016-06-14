@@ -74,6 +74,7 @@ copy(){
       # [ -d /trinity ] && rm -rf /trinity/*
       for profile in $( ls /trinity ) ; do
         if [ -d /trinity/${profile}/rootimg  ] ; then
+           echo "remove /trinity/${profile}/rootimg"
            rm -rf /trinity/${profile}/rootimg
         fi  
         if [ -d /trinity/${profile}/rpms  ] ; then
