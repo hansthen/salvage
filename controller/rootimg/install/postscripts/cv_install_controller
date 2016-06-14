@@ -210,7 +210,7 @@ if [ -z $SITEMASTER ]; then
     reposync -n -r epel -r extras -r updates -r xcat-2-core -r xcat-dep -r openstack-juno -p /install/post/otherpkgs/centos7/x86_64/
 else
     reposync -n -r xcat-otherpkgs0 -p /install/post/otherpkgs/centos7/x86_64/
-    sed s/$SITEMASTER/localhost/ /etc/yum.repos.d/xCAT*.repo
+    sed s/$SITEMASTER/controller/ /etc/yum.repos.d/xCAT*.repo
 fi
 
 yum-config-manager --enable xcat-otherpkgs* local-centos*
