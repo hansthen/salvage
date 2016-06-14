@@ -3,6 +3,7 @@
 ##description    : Start trinity
 ##email          : Hans Then <hans.then@clustervision.com>
 
+systemctl start openvswitch # Added to avoid an error message.
 systemctl start docker
 systemctl start trinity
 echo "$0 finished @ $(date)" >> /var/log/postinstall.log
