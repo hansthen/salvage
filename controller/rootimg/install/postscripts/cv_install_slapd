@@ -53,9 +53,9 @@ cat >> /etc/nslcd.conf << EOF
 uri ldap://localhost
 ssl no
 tls_cacertdir /etc/openldap/cacerts
-base   group  ou=Group,dc=cluster
-base   passwd ou=People,dc=cluster
-base   shadow ou=People,dc=cluster
+base group  ou=Group,dc=cluster
+base passwd ou=People,dc=cluster
+base shadow ou=People,dc=cluster
 EOF
 
 # configure the ldap server. Not sure this is needed.
