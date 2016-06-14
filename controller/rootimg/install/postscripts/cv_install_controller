@@ -206,15 +206,15 @@ yum-config-manager --add-repo http://sourceforge.net/projects/xcat/files/yum/2.9
 yum-config-manager --add-repo http://sourceforge.net/projects/xcat/files/yum/xcat-dep/rh7/x86_64/xCAT-dep.repo
 
 mkdir -p /install/post/otherpkgs/centos7/x86_64
-if [ -z $SITEMASTER ]; then
+if [ -z ${SITEMASTER} ]; then
     reposync -n -r epel -r extras -r updates -r xcat-2-core -r xcat-dep -r openstack-juno -p /install/post/otherpkgs/centos7/x86_64/
 else
     reposync -n -r xcat-otherpkgs0 -p /install/post/otherpkgs/centos7/x86_64/
-    sed s/$SITEMASTER/controller/ /etc/yum.repos.d/xCAT*.repo
+    sed -i -e "s/${SITEMASTER}/controller/g" /etc/yum.repos.d/xCAT*.repo
 fi
 
 yum-config-manager --enable xcat-otherpkgs* local-centos*
-yum-config-manager --disable base epel extras updates openstack-juno
+yum-config-manager --disable base epel extras updates openstack-juno xcat-2-core xcat-dep
 
 createrepo /install/post/otherpkgs/centos7/x86_64/
 (genimage centos7-x86_64-netboot-trinity; packimage centos7-x86_64-netboot-trinity) &
