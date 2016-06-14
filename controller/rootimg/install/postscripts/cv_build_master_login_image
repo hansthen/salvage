@@ -61,4 +61,4 @@ virt-copy-in -a ${LOGIN_IMG} /tmp/login-image-version /
 # Diagnostics
 virt-cat -a ${LOGIN_IMG} /etc/ssh/sshd_config | grep PasswordAuthentication
 virt-cat -a ${LOGIN_IMG} /etc/sysconfig/network-scripts/ifcfg-eth0
-virt-cat -a ${LOGIN_IMG} /etc/cloud.cfg
+virt-cat -a ${LOGIN_IMG} /etc/cloud/cloud.cfg
