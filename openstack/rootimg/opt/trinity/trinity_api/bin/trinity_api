@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import trinity_api.api as api 
+import trinity_api.http as api 
 
 if __name__=="__main__":
 #  api.trinity.run(host=api.trinity_host, port=api.trinity_port, debug=api.trinity_debug)

@@ -5,6 +5,7 @@ IP=10.141.255.254
 KS_CONT="keystone"
 docker exec ${KS_CONT} keystone --os-token system --os-endpoint http://${IP}:35357/v2.0 tenant-create --name admin --description "Admin Tenant"
 obol -H ldap://controller -w system user add "admin" --password system --cn "admin" --sn "admin" --givenName "admin"
+obol -H ldap://controller -w system user add "trinity" --password system --cn "trinity" --sn "trinity" --givenName "trinity"
 docker exec ${KS_CONT} keystone --os-token system --os-endpoint http://${IP}:35357/v2.0 role-create --name admin
 docker exec ${KS_CONT} keystone --os-token system --os-endpoint http://${IP}:35357/v2.0 role-create --name _member_
 docker exec ${KS_CONT} keystone --os-token system --os-endpoint http://${IP}:35357/v2.0 user-role-add --user admin --tenant admin --role admin
