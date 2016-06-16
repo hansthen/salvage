@@ -7,6 +7,7 @@
 ##                 abhishek.mukherjee@clustervision.com
 
 
+echo "$0 started @ $(date)" >> /var/log/postinstall.log
 #--------------------------------------------------------------------------------------
 # install xcat
 #--------------------------------------------------------------------------------------
@@ -17,7 +18,7 @@ if [ ! -z $SITEMASTER ]; then
     mount ${SITEMASTER}:/trinity /tmp/trinity       
     echo "Creating installation tree"
     source /etc/profile.d/xcat.sh
-    copycds -n centos7 -o $(ls -cr /tmp/trinity/iso/*.iso | head -1) > /dev/null
+    nohup copycds -n centos7 -o $(ls -cr /tmp/trinity/iso/*.iso | head -1) > /dev/null &
 else
     echo No master found, checking for a git repository.
     SCRIPT=$(readlink -f $0)
@@ -48,12 +49,10 @@ EOF
     yum -y -q install $(grep -v ^# $REPODIR/controller/rootimg/install/custom/install/centos/controller.otherpkgs)
     source /etc/profile.d/xcat.sh
     mkdir -p /tmp/trinity/iso
-    echo Downloading cd, this may take a while
-    wget -c http://mirror.denit.net/centos/7/isos/x86_64/CentOS-7-x86_64-Everything-1511.iso \
-         -P /tmp/trinity/iso/
-
-    echo "Creating installation tree"
-    copycds -n centos7 -o $(ls -cr /tmp/trinity/iso/*.iso | head -1) > /dev/null
+    nohup bash -c "echo Creating installation tree ;\
+        wget -c http://mirror.denit.net/centos/7/isos/x86_64/CentOS-7-x86_64-Everything-1511.iso -P /tmp/trinity/iso/ ;\ 
+        copycds -n centos7 -o $(ls -cr /tmp/trinity/iso/*.iso | head -1) > /dev/null ;\
+        echo copycds finished @ $(date) >> /var/log/postinstall.log" &
 fi
 
 systemctl stop NetworkManager
@@ -129,7 +128,7 @@ service iptables save
 #--------------------------------------------------------------------------------------
 # copy required files from the master node to the controller node
 #--------------------------------------------------------------------------------------
-cp -LrT /tmp/trinity/clustervision /trinity/clustervision &
+nohup cp -LrT /tmp/trinity/clustervision /trinity/clustervision &
 cp -LrT /tmp/trinity/controller/rootimg /
 cp /tmp/trinity/version /trinity/version
 
@@ -206,19 +205,22 @@ yum-config-manager --add-repo http://sourceforge.net/projects/xcat/files/yum/2.9
 yum-config-manager --add-repo http://sourceforge.net/projects/xcat/files/yum/xcat-dep/rh7/x86_64/xCAT-dep.repo
 
 mkdir -p /install/post/otherpkgs/centos7/x86_64
-if [ -z ${SITEMASTER} ]; then
-    reposync -n -r epel -r extras -r updates -r xcat-2-core -r xcat-dep -r openstack-juno -p /install/post/otherpkgs/centos7/x86_64/
-else
-    reposync -n -r xcat-otherpkgs0 -p /install/post/otherpkgs/centos7/x86_64/
-    sed -i -e "s/${SITEMASTER}/controller/g" /etc/yum.repos.d/xCAT*.repo
-fi
-
-yum-config-manager --enable xcat-otherpkgs* local-centos*
-yum-config-manager --disable base epel extras updates openstack-juno xcat-2-core xcat-dep
-
-createrepo /install/post/otherpkgs/centos7/x86_64/
-(genimage centos7-x86_64-netboot-trinity; packimage centos7-x86_64-netboot-trinity) &
-(genimage centos7-x86_64-netboot-nova; packimage centos7-x86_64-netboot-nova) &
+nohup bash -c "\
+    if [ -z ${SITEMASTER} ]; then \
+        reposync -n -r epel -r extras -r updates -r xcat-2-core -r xcat-dep -r openstack-juno \
+             -p /install/post/otherpkgs/centos7/x86_64/ ;\
+    else \
+        reposync -n -r xcat-otherpkgs0 -p /install/post/otherpkgs/centos7/x86_64/ ;\
+        sed -i -e "s/${SITEMASTER}/controller/g" /etc/yum.repos.d/xCAT*.repo ;\
+    fi ;\
+    yum-config-manager --enable xcat-otherpkgs* local-centos* ;\
+    yum-config-manager --disable base epel extras updates openstack-juno xcat-2-core xcat-dep ;\
+    createrepo /install/post/otherpkgs/centos7/x86_64/ ;\
+    genimage centos7-x86_64-netboot-trinity ;\
+    packimage centos7-x86_64-netboot-trinity ;\
+    genimage centos7-x86_64-netboot-nova ;\
+    packimage centos7-x86_64-netboot-nova ;\
+    echo genimage finished @ $(date) >> /var/log/postinstall.log" &
 
 #--------------------------------------------------------------------------------------
 # install docker and docker-registry
@@ -256,7 +258,5 @@ tabch key=xcat,username=trinity passwd.password=trinity
 mkdef -t policy 6 name=trinity rule=allow
 sed  -e "/<Directory \/>/,/<\/Directory>/ s/Require/#Require/" -i /etc/httpd/conf/httpd.conf
 service httpd restart
-
-wait 
 
 echo "$0 finished @ $(date)" >> /var/log/postinstall.log
