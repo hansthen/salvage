@@ -38,17 +38,10 @@ else
     yum -y -q install $(grep -v ^# $REPODIR/controller/rootimg/install/custom/install/centos/controller.pkglist)
     yum -y -q install epel-release
     yum -y -q install http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm
+    yum -y -q install https://repos.fedorapeople.org/repos/openstack/openstack-liberty/rdo-release-liberty-1.noarch.rpm
     wget --no-check-certificate https://xcat.org/files/xcat/repos/yum/${XCAT_VERSION}/xcat-core/xCAT-core.repo \
          -O /etc/yum.repos.d/xCAT-core.repo
     wget --no-check-certificate https://xcat.org/files/xcat/repos/yum/xcat-dep/rh7/x86_64/xCAT-dep.repo -O /etc/yum.repos.d/xCAT-dep.repo
-    cat << EOF > /etc/yum.repos.d/rdo-juno-release.repo
-[openstack-juno]
-name=OpenStack Juno Repository
-baseurl=http://repos.fedorapeople.org/repos/openstack/EOL/openstack-juno/epel-7/
-enabled=1
-skip_if_unavailable=0
-gpgcheck=0
-EOF
     yum -y -q install $(grep -v ^# $REPODIR/controller/rootimg/install/custom/install/centos/controller.otherpkgs)
     source /etc/profile.d/xcat.sh
     mkdir -p /tmp/trinity/iso
@@ -113,23 +106,16 @@ mkdir -p /install/post/otherpkgs/centos7/x86_64
 
 # FIXME: check if we need this
 yum -y -q install epel-release
-cat << EOF > /etc/yum.repos.d/rdo-juno-release.repo
-[openstack-juno]
-name=OpenStack Juno Repository
-baseurl=http://repos.fedorapeople.org/repos/openstack/EOL/openstack-juno/epel-7/
-enabled=1
-skip_if_unavailable=0
-gpgcheck=0
-EOF
+yum -y -q install https://repos.fedorapeople.org/repos/openstack/openstack-liberty/rdo-release-liberty-1.noarch.rpm
 yum -y -q install http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm
 yum-config-manager --disable xcat-otherpkgs* local-centos* > /dev/null
-yum-config-manager --enable base epel extras updates openstack-juno > /dev/null
-yum-config-manager --add-repo https://xcat.org/files/xcat/repos/yum/${XCAT_VERSION}/xcat-core/xCAT-core.repo > /dev/null
-yum-config-manager --add-repo https://xcat.org/files/xcat/repos/yum/xcat-dep/rh7/x86_64/xCAT-dep.repo > /dev/null
+yum-config-manager --enable base epel extras updates openstack-liberty > /dev/null
+yum-config-manager --add-repo http://sourceforge.net/projects/xcat/files/yum/${XCAT_VERSION}/xcat-core/xCAT-core.repo > /dev/null
+yum-config-manager --add-repo http://sourceforge.net/projects/xcat/files/yum/xcat-dep/rh7/x86_64/xCAT-dep.repo > /dev/null
 
 echo "Syncing repositories, this may take some time"
 if [ -z $SITEMASTER ]; then
-    reposync -n -r elrepo -r epel -r extras -r updates -r xcat-2-core -r xcat-dep -r openstack-juno 
+    reposync -n -r elrepo -r epel -r extras -r updates -r xcat-2-core -r xcat-dep -r openstack-liberty 
         -p /install/post/otherpkgs/centos7/x86_64/ > /dev/null
 else
     reposync -n -r xcat-otherpkgs0 -p /install/post/otherpkgs/centos7/x86_64/ > /dev/null

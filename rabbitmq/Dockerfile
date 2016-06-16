@@ -19,5 +19,3 @@ RUN pip install supervisor
 EXPOSE 5672 15672 4369 25672
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
 COPY rootimg /
-#COPY supervisord.conf /etc/supervisord.conf
-#COPY rabbitmq.config /etc/rabbitmq/rabbitmq.config

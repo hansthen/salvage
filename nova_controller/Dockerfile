@@ -2,9 +2,9 @@ FROM centos:centos7
 MAINTAINER abhishek.mukherjee@clustervision.com
 
 RUN yum -y swap -- remove systemd-container* -- install systemd systemd-libs
-ADD rdo-juno-release.repo /etc/yum.repos.d/rdo-juno-release.repo
-RUN yum -y -q install --setopt=tsflags=nodocs epel-release
-RUN yum -y -q install --setopt=tsflags=nodocs openstack-selinux openstack-utils && \
+RUN yum -y -q install --setopt=tsflags=nodocs epel-release && \ 
+    yum -y -q install --setopt=tsflags=nodocs centos-release-openstack-liberty && \
+    yum -y -q install --setopt=tsflags=nodocs openstack-selinux openstack-utils && \
     yum -y -q install --setopt=tsflags=nodocs openstack-nova-api openstack-nova-cert openstack-nova-conductor \
                                            openstack-nova-console openstack-nova-novncproxy openstack-nova-scheduler \
                                            python-novaclient && \

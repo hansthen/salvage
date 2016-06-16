@@ -1,11 +1,10 @@
 #!/bin/bash
 set -x
-OSTACKRELEASE="openstack-juno"
+OSTACKRELEASE="centos-openstack-liberty"
 DATE=$(date +%Y%m%d)
 set +x
-if ! grep -Fq $OSTACKRELEASE /etc/yum.repos.d/rdo-release.repo; then
+if ! grep -Fq $OSTACKRELEASE /etc/yum.repos.d/*.repo; then
     echo "Please check that your rdo-release package matches the $OSTACKRELEASE distribution!"
-    echo "You can find the package in https://repos.fedorapeople.org/repos/openstack/$OSTACKRELEASE/"
     exit 1
 fi
 set -x

@@ -136,7 +136,7 @@ def user_show(b, username):
     base_dn = 'ou=People,%s' % b
     filter = '(uid=%s)' % username
     for dn, attrs in conn.search_s( base_dn, ldap.SCOPE_SUBTREE, filter ):
-        print attrs
+        print str(attrs).replace("'", "").replace("[", "").replace("]", "").replace("{", "").replace("}", "").replace(",", "\n")
 
 
 def user_uidNumber(b, username):
@@ -205,8 +205,7 @@ def group_show(b, groupname):
     base_dn = 'ou=Group,%s' % b
     filter = '(cn=%s)' % groupname
     for dn, attrs in conn.search_s( base_dn, ldap.SCOPE_SUBTREE, filter ):
-        print attrs
-
+        print str(attrs).replace("'", "").replace("[", "").replace("]", "").replace("{", "").replace("}", "").replace(",", "\n")
 
 @retry(stop_max_delay=10000)
 def increment_uid(b):

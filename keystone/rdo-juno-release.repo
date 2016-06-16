@@ -1,6 +1,0 @@
-[openstack-juno]
-name=OpenStack Juno Repository
-baseurl=http://repos.fedorapeople.org/repos/openstack/EOL/openstack-juno/epel-7/
-enabled=1
-skip_if_unavailable=0
-gpgcheck=0
