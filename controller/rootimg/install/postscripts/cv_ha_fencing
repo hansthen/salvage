@@ -8,12 +8,14 @@
 #setup fencing
 for i in {1..2}; do
     dev=$(ip route get 192.168.1.254 | head -1 | awk -F' ' '{print $(NF-2)}')
-    pcs resource create ipmi-${i} ocf:heartbeat:IPaddr2 ip="192.168.8.${i}" \
+    octet=$(ip addr show $dev | grep -oP "(?<=192.168.1.)(\d+)(?=/24)")
+    addr=192.168.8.$addr
+    pcs resource create ipmi-${i} ocf:heartbeat:IPaddr2 ip="192.168.8.$((254-${i}))" \
         iflabel="ipmi" cidr_netmask="24" nic="$dev" op monitor interval="37s"
     pcs constraint location ipmi-${i} prefers controller-${i}.cluster
-#    pcs stonith create fence-${i} fence_ipmilan pcmk_host_list="controller-${i}.cluster" \
-#        ipaddr="192.168.8.${i}" action="reboot" login="root" \
-#        passwd="system" delay=15 op monitor interval=60s
+    pcs stonith create fence-${i} fence_ipmilan pcmk_host_list="controller-${i}.cluster" \
+        ipaddr="$addr" action="off" login="root" \
+        passwd="system" delay=15 op monitor interval=60s
 done
 pcs property set stonith-enabled=false
 

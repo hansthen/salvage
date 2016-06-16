@@ -27,7 +27,6 @@ fi
 
 "${mysql[@]}" <<-EOSQL
     SET @@SESSION.SQL_LOG_BIN=0;
-    set global max_connections = 1024;
 
     DELETE FROM mysql.user ;
     CREATE USER 'root'@'%' IDENTIFIED BY 'system' ;
@@ -110,7 +109,7 @@ source /etc/profile.d/xcat.sh
 sed -e "s/<TENANT>/admin/g" \
     -e "s/<USER>/admin/g" \
     -e "s/<PASSWORD>/system/g" \
-    -e "s/<OPENSTACK>/10.141.255.254/g" \
+    -e "s/<OPENSTACK>/controller/g" \
     /trinity/openstack/keystonerc > /root/keystonerc_admin
 chmod go-rw /root/keystonerc_admin
 scp /root/keystonerc_admin controller-2.cluster:/root/keystonerc_admin
@@ -124,6 +123,7 @@ nova network-create \
        --fixed-range-v4 192.168.32.0/24 \
        --fixed-cidr 192.168.32.0/24 \
        --bridge-interface ${PRI_NIC} \
+       --multi-host T \
        --bridge ${BRIDGE} \
        ${NETWORK_LABEL}
 

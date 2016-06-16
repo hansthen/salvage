@@ -10,6 +10,8 @@ import subprocess
 import base64
 import time
 import tzlocal
+from retrying import retry
+from novaclient import client as novaclient
 
 conf_file='/etc/trinity/trinity_api.conf'
 config=SafeConfigParser()
@@ -23,6 +25,15 @@ trinity_user=config.get('xcat','trinity_user')
 trinity_password=config.get('xcat','trinity_password')
 node_pref=config.get('cluster','node_pref')
 cont_pref=config.get('cluster','cont_pref')
+keystone_admin_user=config.get('keystone', 'keystone_admin_user')
+keystone_admin_pass=config.get('keystone', 'keystone_admin_pass')
+
+xcat_version = subprocess.check_output('/opt/xcat/bin/lsxcatd -v', shell=True)
+version = re.search(r'Version \d+\.(\d+)(\.\d+)?\s', xcat_version)
+if version and int(version.group(1)) < 10:
+    password_parm = 'password'
+else:
+    password_parm = 'userPW'
 
 xcat_version = subprocess.check_output('/opt/xcat/bin/lsxcatd -v', shell=True)
 version = re.search(r'Version \d+\.(\d+)(\.\d+)?\s', xcat_version)
@@ -581,17 +592,21 @@ def modify_cluster(cluster,version=1):
     slurm=os.path.join(req.cluster_path,
                        vc_cluster,
                        req.slurm_node_file)
-    fop=open(slurm,'w')
-    nodes = sorted(ret['nodeList'])
-    for cont in nodes: 
-      node_name=cont
-      cpu_count=all_nodes_info[cont]['cpucount']
-      slurm_string='NodeName='+node_name+' CPUS='+cpu_count+' State=UNKNOWN'
-      fop.write(slurm_string+'\n')
-    cont_string=','.join(nodes)
-    part_string='PartitionName='+req.cont_part+' Nodes='+cont_string+' Default=Yes MaxTime=INFINITE State=UP'
-    fop.write(part_string+'\n')
-    fop.close()   
+    @retry(stop_max_delay=10000,wait_fixed=1000)
+    def try_write():
+      fop=open(slurm,'w')
+      nodes = sorted(ret['nodeList'])
+      for cont in nodes:
+        node_name=cont
+        cpu_count=all_nodes_info[cont]['cpucount']
+        slurm_string='NodeName='+node_name+' CPUS='+cpu_count+' State=UNKNOWN'
+        fop.write(slurm_string+'\n')
+      cont_string=','.join(nodes)
+      part_string='PartitionName='+req.cont_part+' Nodes='+cont_string+' Default=Yes MaxTime=INFINITE State=UP'
+      fop.write(part_string+'\n')
+      fop.close()
+    try_write()
+    subprocess.call('echo slurm-nodes.conf was written',shell=True) 
       
   ##---------------------------------------------------------------------
   ## In this part we update makehosts, makedns etc for the cluster
@@ -705,8 +720,9 @@ def modify_cluster(cluster,version=1):
   # Now create the login node
   #----------------------------------------------------------------------
   login_ip="172."+second_octet+".255.254"
-  returncode=subprocess.call("ping -c 1 "+login_ip, shell=True)
-  if returncode != 0:
+  nova = novaclient.Client('2', keystone_admin_user, keystone_admin_pass, 
+                           'admin', req.keystone_host, connection_pool=True)
+  if not nova.servers.list(search_opts={'all_tenants': 1, 'name': 'login-' + cluster}):
     login_pool=login_cluster
     path=req.nova_host+'/'+req.tenant_id+'/os-floating-ips-bulk'
     headers={"X-Auth-Project-Id":"admin", "X-Auth-Token":req.token}

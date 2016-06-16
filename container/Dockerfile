@@ -15,13 +15,19 @@ RUN yum -y -q install openssh-server openssh-clients python-pip \
     infinipath-psm iproute \
     xauth xorg-x11-xauth \
     vim-enhanced \
-    hostname && yum clean all
+    hostname
 
 RUN mkdir -p /var/run/sshd && \
     chmod -rx /var/run/sshd && \
     ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key && \
     ssh-keygen -t dsa -f /etc/ssh/ssh_host_dsa_key && \
-    sed -ri 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/g' /etc/ssh/sshd_config
+    sed -i -e 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/g' \
+           -e 's/AcceptEnv XMODIFIERS/AcceptEnv TZ XMODIFIERS/g' \
+        /etc/ssh/sshd_config
+
+RUN rm /etc/rsyslog.d/listen.conf && \
+    sed -i "s/^\$OmitLocalLogging on/#\$OmitLocalLogging on/" \
+     /etc/rsyslog.conf
 
 RUN pip install supervisor
 COPY rootimg /
@@ -36,4 +42,9 @@ RUN authconfig --enablemkhomedir --enablesssd --enablesssdauth --update
 
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
 ENTRYPOINT ["/docker-entrypoint.sh"]
+
+RUN yum -y -q install numactl numactl-devel \
+    glibc-devel kernel-headers kernel-tools \
+    pciutils bc less libsysfs-devel libibverbs-devel \
+    libgfortran && yum clean all
 

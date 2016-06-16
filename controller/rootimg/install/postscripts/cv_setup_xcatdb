@@ -7,7 +7,7 @@
 
 if docker ps | grep galera; then
     container=galera
-else if docker ps | grep mariadb; then
+elif docker ps | grep mariadb; then
     container=mariadb
 fi
 

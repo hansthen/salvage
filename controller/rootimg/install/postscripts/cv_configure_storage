@@ -7,12 +7,18 @@
 ##                 The volume group will always be mounted under /var.
 ##email          : Hans Then <hans.then@clustervision.com>
 
+cat > /etc/sysconfig/docker-storage << EOF
+DOCKER_STORAGE_OPTIONS="--storage-driver devicemapper --storage-opt dm.fs=xfs --storage-opt dm.thinpooldev=/dev/mapper/storage-docker--pool --storage-opt dm.use_deferred_removal=true --storage-opt dm.use_deferred_deletion=true"
+EOF
+
 if [ "$(lvs --noheadings | grep -v docker-pool | awk -F' ' '{print $1}')" == "$PROFILE" ]; then
+   echo "$0 already configured"
    echo "$0 already configured" >> /var/log/postinstall.log
 else
    # remove existing volume groups
+   systemctl start docker-storage-setup
    umount -a -t ext4
-   for vg in $(vgs --noheadings | grep -v "No Volumes" | grep -v docker-pool | awk -F' ' '{print $1}'); do 
+   for vg in $(vgs --noheadings | grep -v docker-pool | grep -v "No Volumes" | awk -F' ' '{print $1}'); do 
       vgchange -a n $vg
       vgremove -f $vg
    done
@@ -26,7 +32,7 @@ else
    # create a volume group and logical volumes
    vgcreate -f storage $(for disk in $disks; do echo -n /dev/$disk; echo -n " " ; done)
    vgchange -a y storage
-   lvcreate -l 90%VG -n $PROFILE storage
+   lvcreate -l 40%VG -n $PROFILE storage
    # create a file system and initialize it from the image
    mkfs -t ext4 /dev/storage/$PROFILE
    mkdir /tmp/var

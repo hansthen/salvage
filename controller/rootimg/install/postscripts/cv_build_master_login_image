@@ -37,6 +37,8 @@ virt-customize -a ${LOGIN_IMG} \
     --run-command "chown -R slurm:slurm /var/log/slurm" \
     --run-command "systemctl enable slurm munge" \
     --edit "/etc/ssh/sshd_config: s/[#]*PasswordAuthentication no/PasswordAuthentication yes/g" \
+    --edit "/etc/ssh/sshd_config: s/AcceptEnv XMODIFIERS /AcceptEnv TZ XMODIFIERS/g" \
+    --edit "/etc/ssh/ssh_config: s/SendEnv XMODIFIERS /SendEnv TZ XMODIFIERS/g" \
     --edit "/etc/sysconfig/network-scripts/ifcfg-eth0: s/^PEERDNS=.*/PEERDNS=\"no\"/g" \
     --install oddjob-mkhomedir,sssd,authconfig \
     --edit "/etc/oddjobd.conf.d/oddjobd-mkhomedir.conf: s/0022/0077/g" \
@@ -52,6 +54,8 @@ virt-customize -a ${LOGIN_IMG} \
     --install python-ldap,python-retrying,xorg-x11-xauth,bind-utils,python-pip,git,jq,traceroute,tcpdump
                                
 virt-copy-in -a ${LOGIN_IMG} /trinity/login/rootimg/* /
+cp /trinity/version /tmp/login-image-version
+virt-copy-in -a ${LOGIN_IMG} /tmp/login-image-version /
 
 # Diagnostics
 virt-cat -a ${LOGIN_IMG} /etc/ssh/sshd_config | grep PasswordAuthentication

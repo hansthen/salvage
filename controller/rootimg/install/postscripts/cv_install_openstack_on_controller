@@ -35,4 +35,5 @@ for profile in "${profiles[@]}"; do
       
   cp -LrT /tmp/${TOPDIR}/${profile}/host/rootimg /
 done
+
 echo "$0 finished @ $(date)" >> /var/log/postinstall.log

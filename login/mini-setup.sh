@@ -131,5 +131,5 @@ systemctl stop ntpd
 ntpdate -s controller
 systemctl start ntpd
 
-service munge restart
-service slurm restart
+systemctl daemon-reload
+systemctl restart munge slurm

@@ -1,10 +1,9 @@
 [Unit]
 Description=Dockerized Keystone
-Requires=galera.service rabbitmq.service
-After=galera.service rabbitmq.service
+Requires=docker.service
+After=docker.service
 
 [Service]
-Restart=always
 ExecStartPre=-/usr/bin/docker create --net=host --privileged=true --name=keystone controller:5050/keystone
 ExecStart=/usr/bin/docker start -a keystone
 ExecStop=/usr/bin/docker stop -t 2 keystone

@@ -31,6 +31,7 @@ chroot $installroot chkconfig ntpd on
 # These will be started in the postscriptt.
 chroot $installroot chkconfig trinity off
 chroot $installroot chkconfig docker off
+chroot $installroot chkconfig docker-storage-setup off
 
 echo "mlx4_ib" > $installroot/etc/modules-load.d/mlx4_ib.conf
 
