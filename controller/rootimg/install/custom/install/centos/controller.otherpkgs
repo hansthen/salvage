@@ -22,6 +22,7 @@ sysfsutils
 libvirt-daemon-config-nwfilter
 libvirt-daemon-driver-nwfilter
 
+python-openstackclient
 python-keystoneclient
 python-glanceclient
 python-novaclient

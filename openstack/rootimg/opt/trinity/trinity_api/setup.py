@@ -10,6 +10,7 @@ setup(
     author_email='abhishek.mukherjee@clustervision.com',
     packages=['trinity_api'],
     package_dir={'trinity_api': 'src'},
+    scripts=['bin/trinity_api'],
     data_files=[
         ('/etc/trinity', ['conf/trinity_api.conf'])
     ]

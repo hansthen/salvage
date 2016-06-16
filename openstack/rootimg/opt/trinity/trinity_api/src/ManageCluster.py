@@ -365,7 +365,7 @@ class Modify (object):
       "server":{
         "name":login_cluster,
         "imageRef":image_id,
-        "flavorRef": "448f9710-f5b5-454c-b89a-fc8d691d9d87",
+        "flavorRef": "2",
         "user_data": login_data_encoded,
         "security_groups": [{"name":"default"}],
         "max_count": 1,
