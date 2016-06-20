@@ -46,7 +46,7 @@ mlocate
 openldap-clients
 python-ldap
 authconfig
-
+sssd
 
 # Infiniband
 opensm
