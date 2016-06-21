@@ -8,6 +8,9 @@
 
 
 echo "$0 started @ $(date)" >> /var/log/postinstall.log
+yum -y -q install docker docker-registry
+yum -y -q install mod_ssl
+yum -y -q install perl-JSON
 #--------------------------------------------------------------------------------------
 # install xcat
 #--------------------------------------------------------------------------------------
@@ -226,7 +229,6 @@ nohup bash -c "\
 # install docker and docker-registry
 # and create the trinity image for the compute nodes
 #--------------------------------------------------------------------------------------
-yum -y -q install docker docker-registry
 # FIXME: move this to the rootimg profile
 sed -i 's/REGISTRY_PORT=.*/REGISTRY_PORT=5050/' /etc/sysconfig/docker-registry
 
@@ -245,10 +247,8 @@ chmod -x /usr/lib/systemd/system/*
 #--------------------------------------------
 # Install the xCAT web service
 #--------------------------------------------
-# The xCAT web service requires the following
-yum -y -q install mod_ssl
+# The xCAT web service requires a restart to activate SSL
 service httpd restart
-yum -y -q install perl-JSON
 
 # Set up the xCAT web service
 useradd trinity -d /var/run/trinity -s /sbin/nologin
