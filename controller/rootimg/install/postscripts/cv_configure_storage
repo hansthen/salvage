@@ -7,7 +7,7 @@
 ##                 The volume group will always be mounted under /var.
 ##email          : Hans Then <hans.then@clustervision.com>
 
-if [ $(lvs --noheadings | grep -v docker-pool | awk -F' ' '{print $1}') == "$PROFILE" ]; then
+if [ "$(lvs --noheadings | grep -v docker-pool | awk -F' ' '{print $1}')" == "$PROFILE" ]; then
    echo "$0 already configured" >> /var/log/postinstall.log
 else
    # remove existing volume groups
