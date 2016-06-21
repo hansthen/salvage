@@ -36,6 +36,7 @@ else
    umount /tmp/var
 
    # create a docker filesystem
+   rm /etc/sysconfig/docker-storage
    docker-storage-setup
 fi
 
