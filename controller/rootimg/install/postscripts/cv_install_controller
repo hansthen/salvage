@@ -216,6 +216,8 @@ echo system | passwd trinity --stdin
 mkdef -t policy 6 name=trinity rule=allow
 sed  -e "/<Directory \/>/,/<\/Directory>/ s/Require/#Require/" -i /etc/httpd/conf/httpd.conf
 systemctl restart httpd 
+sed -i '/^ExecStartPre/d' /usr/lib/systemd/system/httpd.service.d/openstack-dashboard.conf
+systemctl daemon-reload
 
 #Make xCAT available via the floating IP.
 if grep -v XCATHOST /etc/profile.d/xcat.sh; then

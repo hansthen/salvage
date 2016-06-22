@@ -11,6 +11,7 @@ systemctl stop xcatd
 systemctl stop docker-registry
 systemctl stop docker
 systemctl stop nfs-server
+systemctl disable nfs-server
 
 dev=$(ip a | grep 10.148.255.253 | awk '{print $5}')
 
