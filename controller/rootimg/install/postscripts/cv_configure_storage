@@ -7,10 +7,6 @@
 ##                 The volume group will always be mounted under /var.
 ##email          : Hans Then <hans.then@clustervision.com>
 
-cat > /etc/sysconfig/docker-storage << EOF
-DOCKER_STORAGE_OPTIONS="--storage-driver devicemapper --storage-opt dm.fs=xfs --storage-opt dm.thinpooldev=/dev/mapper/storage-docker--pool --storage-opt dm.use_deferred_removal=true --storage-opt dm.use_deferred_deletion=true"
-EOF
-
 if [ "$(lvs --noheadings | grep -v docker-pool | awk -F' ' '{print $1}')" == "$PROFILE" ]; then
    echo "$0 already configured"
    echo "$0 already configured" >> /var/log/postinstall.log
@@ -39,7 +35,12 @@ else
    mount /dev/storage/$PROFILE /tmp/var
    cp -rT /var /tmp/var
    umount /tmp/var
+
+   # create a docker filesystem
+   rm /etc/sysconfig/docker-storage
+   docker-storage-setup
 fi
+
 # Fix for #608
 mkdir -p /.var/lib
 mv /var/lib/rpm /.var/lib/
