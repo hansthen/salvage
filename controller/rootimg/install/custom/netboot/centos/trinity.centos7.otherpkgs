@@ -1,2 +1,4 @@
 docker
 openvswitch
+check_mk-agent
+check_mk-agent-logwatch
