@@ -14,6 +14,7 @@ RUN su - monitoring -c "htpasswd -b ~/etc/htpasswd admin system"
 RUN su - monitoring -c "htpasswd -D ~/etc/htpasswd omdadmin"
 ADD users.mk "/omd/sites/monitoring/etc/check_mk/multisite.d/wato/users.mk"
 RUN chown monitoring:monitoring "/omd/sites/monitoring/etc/check_mk/multisite.d/wato/users.mk"
+RUN cp /usr/lib64/python2.7/hashlib.py /omd/versions/1.30/lib/python/hashlib.py
 ADD docker-entrypoint.sh /
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["/bin/bash"]
