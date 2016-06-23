@@ -1,3 +1,5 @@
 docker
 openvswitch
 pigz
+check_mk-agent
+check_mk-agent-logwatch

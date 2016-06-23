@@ -20,4 +20,3 @@ $KEYSTONE \
        --internalurl http://controller:9292 \
        --adminurl http://controller:9292 \
        image
-

@@ -20,6 +20,11 @@ reposync -n -r epel -r base -r extras -r updates -r xcat-2-core -r xcat-dep \
             -r elrepo -r $OSTACKRELEASE -p /install/post/$DATE/centos7/x86_64/
 # Sync the repo that is in the $DATE directory, downloading only what is missing (faster)
 ln -sT /install/post/$DATE /install/post/otherpkgs
+mkdir -p /install/post/otherpkgs/centos7/x86_64/check_mk
+cd /install/post/otherpkgs/centos7/x86_64/check_mk
+wget https://mathias-kettner.de/download/check_mk-agent-1.2.4p5-1.noarch.rpm
+wget https://mathias-kettner.de/download/check_mk-agent-logwatch-1.2.4p5-1.noarch.rpm
+cd -
 createrepo /install/post/otherpkgs/centos7/x86_64/
 
 

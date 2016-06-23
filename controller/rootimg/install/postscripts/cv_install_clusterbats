@@ -19,7 +19,4 @@ pip install python-hostlist
 
 pip install python-hostlist
 
-source /etc/profile.d/xcat.sh
-cd /root/clusterbats/controller
-bats t1.1.bats t1.2.bats t2.1.bats t2.2.bats t3.2.bats t3.3.bats | tee /var/log/clusterbats.log
 echo "$0 finished @ $(date)" >> /var/log/postinstall.log

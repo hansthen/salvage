@@ -1,4 +1,4 @@
 #imagename,groups,profile,imagetype,description,provmethod,rootfstype,osdistroname,osupdatename,cfmdir,osname,osvers,osarch,synclists,postscripts,postbootscripts,serverrole,isdeletable,kitcomponents,comments,disable
-"centos7-x86_64-netboot-trinity",,"trinity","linux",,"netboot",,"centos7-x86_64",,,"Linux","centos7","x86_64",,,"cv_configure_prinic,cv_set_scheduler,cv_configure_storage,cv_start_trinity,cv_install_agent",,,,,
+"centos7-x86_64-netboot-trinity",,"trinity","linux",,"netboot",,"centos7-x86_64",,,"Linux","centos7","x86_64",,,"cv_configure_prinic,cv_set_scheduler,cv_configure_storage,cv_start_trinity",,,,,
 "centos7-x86_64-netboot-nova",,"nova","linux",,"netboot",,"centos7-x86_64",,,"Linux","centos7","x86_64",,,"cv_configure_prinic,cv_install_nova,cv_install_agent",,,,,
 "centos7-x86_64-netboot-cinder",,"cinder","linux",,"netboot",,"centos7-x86_64",,,"Linux","centos7","x86_64",,,"cv_configure_prinic,cv_install_cinder,cv_install_agent",,,,,

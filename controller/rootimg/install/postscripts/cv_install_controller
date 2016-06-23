@@ -208,11 +208,11 @@ systemctl daemon-reload
 #---------------------------------------------------------------------------------------
 # Set up the xCAT web service
 #---------------------------------------------------------------------------------------
+useradd trinity -d /var/run/trinity -s /sbin/nologin
+#echo system | passwd trinity --stdin
 source /etc/profile.d/xcat.sh
 export HOME=/root
 # FIXME: use obol for this.
-useradd trinity
-echo system | passwd trinity --stdin
 mkdef -t policy 6 name=trinity rule=allow
 sed  -e "/<Directory \/>/,/<\/Directory>/ s/Require/#Require/" -i /etc/httpd/conf/httpd.conf
 systemctl restart httpd 

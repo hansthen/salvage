@@ -8,7 +8,6 @@
 ##email          : Hans Then <hans.then@clustervision.com>
 
 if [ "$(lvs --noheadings | grep -v docker-pool | awk -F' ' '{print $1}')" == "$PROFILE" ]; then
-   echo "$0 already configured"
    echo "$0 already configured" >> /var/log/postinstall.log
 else
    # remove existing volume groups
@@ -31,7 +30,7 @@ else
    # configure docker storage
    echo > /etc/sysconfig/docker-storage
    echo VG=storage >> /etc/sysconfig/docker-storage-setup
-   systemctl start docker-storage-setup
+   docker-storage-setup
 
    lvcreate -l 40%VG -n $PROFILE storage
    # create a file system and initialize it from the image
@@ -40,6 +39,7 @@ else
    mount /dev/storage/$PROFILE /tmp/var
    cp -rT /var /tmp/var
    umount /tmp/var
+
 fi
 
 # Fix for #608
