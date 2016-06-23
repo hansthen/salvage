@@ -12,7 +12,7 @@ TEMPLATE_DEBUG = DEBUG
 # with the list of host/domain names that the application can serve.
 # For more information see:
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = ['horizon.example.com', 'localhost']
+ALLOWED_HOSTS = ['horizon.example.com', 'controller.cluster, 'localhost']
 
 # Set SSL proxy settings:
 # For Django 1.4+ pass this header from the proxy after terminating the SSL,
