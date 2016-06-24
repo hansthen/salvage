@@ -18,7 +18,7 @@ docker run --net=host --privileged=true \
      --wsrep_cluster_address=gcomm:// \
      --wsrep_cluster_name=trinity_db
 
-mysql=( mysql --protocol=tcp -uroot )
+mysql=( mysql --protocol=tcp -uroot -psystem)
 for i in {300..0}; do
     if echo 'SELECT 1' | "${mysql[@]}" &> /dev/null; then
         break
@@ -33,29 +33,43 @@ fi
 
 "${mysql[@]}" <<-EOSQL
     SET @@SESSION.SQL_LOG_BIN=0;
-
-    DELETE FROM mysql.user ;
-    CREATE USER 'root'@'%' IDENTIFIED BY 'system' ;
-    GRANT ALL ON *.* TO 'root'@'%' WITH GRANT OPTION ;
-    DROP DATABASE IF EXISTS test ;
-    FLUSH PRIVILEGES ;
-
-    CREATE DATABASE keystone;
-    GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'localhost' IDENTIFIED BY 'system';
-    GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'%'         IDENTIFIED BY 'system';
-    CREATE DATABASE glance;
-    GRANT ALL PRIVILEGES ON glance.* TO 'glance'@'localhost'     IDENTIFIED BY 'system';
-    GRANT ALL PRIVILEGES ON glance.* TO 'glance'@'%'             IDENTIFIED BY 'system';
-    CREATE DATABASE nova;
-    GRANT ALL PRIVILEGES ON nova.* TO 'nova'@'localhost'         IDENTIFIED BY 'system';
-    GRANT ALL PRIVILEGES ON nova.* TO 'nova'@'%'                 IDENTIFIED BY 'system';
-    CREATE DATABASE cinder;
-    GRANT ALL PRIVILEGES ON cinder.* TO 'cinder'@'localhost'     IDENTIFIED BY 'system';
-    GRANT ALL PRIVILEGES ON cinder.* TO 'cinder'@'%'             IDENTIFIED BY 'system';
-    FLUSH PRIVILEGES ;
+    use mysql;
+    update user set password=PASSWORD("system") where user='root';
+    flush privileges;
 EOSQL
+
 docker stop galera_bootstrap
 systemctl start galera
+
+mysql=( mysql --protocol=tcp -uroot -psystem)
+for i in {300..0}; do
+    if echo 'SELECT 1' | "${mysql[@]}" &> /dev/null; then
+        break
+    fi
+    echo 'MySQL init process in progress...'
+    sleep 3
+done
+if [ "$i" = 0 ]; then
+    echo >&2 'MySQL init process failed.'
+    exit 1
+fi
+
+"${mysql[@]}" <<-EOSQL
+    set @@session.sql_log_bin=0;
+    create database keystone;
+    grant all privileges on keystone.* to 'keystone'@'localhost' identified by 'system';
+    grant all privileges on keystone.* to 'keystone'@'%'         identified by 'system';
+    create database glance;
+    grant all privileges on glance.* to 'glance'@'localhost'     identified by 'system';
+    grant all privileges on glance.* to 'glance'@'%'             identified by 'system';
+    create database nova;
+    grant all privileges on nova.* to 'nova'@'localhost'         identified by 'system';
+    grant all privileges on nova.* to 'nova'@'%'                 identified by 'system';
+    create database cinder;
+    grant all privileges on cinder.* to 'cinder'@'localhost'     identified by 'system';
+    grant all privileges on cinder.* to 'cinder'@'%'             identified by 'system';
+    flush privileges ;
+EOSQL
 
 #--------------------------------------------------------------------------
 # Setup pacemaker
@@ -140,13 +154,6 @@ CLOUD_IMAGE_FORMAT="qcow2"
 CLOUD_CONTAINER_FORMAT="bare"
 LOGIN_IMAGE="login"
 LOGIN_SETUP="/trinity/login/mini-setup.sh"
-
-#glance image-create \
-#    --name "${LOGIN_IMAGE}" \
-#    --disk-format "${CLOUD_IMAGE_FORMAT}" \
-#    --container-format "${CLOUD_CONTAINER_FORMAT}" \
-#    --visibility public \
-#    --file "${CLOUD_IMAGE}"
 
 openstack image create \
     --disk-format "${CLOUD_IMAGE_FORMAT}" \
