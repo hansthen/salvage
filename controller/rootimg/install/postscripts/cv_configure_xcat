@@ -55,30 +55,22 @@ fi
 #--------------------------------------------------------------------------------------
 echo "Creating installation tree"
 XCAT_VERSION=$(lsxcatd -a | awk -F '[ .]' '/^Version/ {printf "%s.%s", $2, $3}')
-copycds -n centos7 -o $(ls -cr /tmp/trinity/iso/*.iso | head -1) > /dev/null
 
-mkdir -p /install/post/otherpkgs/centos7/x86_64
+nohup bash -c "copycds -n centos7 -o $(ls -cr /tmp/trinity/iso/*.iso | head -1) > /dev/null ;\
+               mkdir -p /install/post/otherpkgs/centos7/x86_64 ;\
+               echo \"Syncing repositories, this may take some time\" ;\
+               reposync -n -r xcat-otherpkgs0 -p /install/post/otherpkgs/centos7/x86_64/ > /dev/null ;\
+               createrepo /install/post/otherpkgs/centos7/x86_64/" &
 
 yum -y -q install epel-release
 yum -y -q install http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm
 yum-config-manager --enable base epel extras updates openstack-liberty > /dev/null
 yum-config-manager --add-repo https://xcat.org/files/xcat/repos/yum/${XCAT_VERSION}/xcat-core/xCAT-core.repo > /dev/null
 yum-config-manager --add-repo https://xcat.org/files/xcat/repos/yum/xcat-dep/rh7/x86_64/xCAT-dep.repo > /dev/null
-
 yum-config-manager --disable xcat-otherpkgs* local-centos* > /dev/null
 
-echo "Syncing repositories, this may take some time"
-reposync -n -r xcat-otherpkgs0 -p /install/post/otherpkgs/centos7/x86_64/ > /dev/null
-createrepo /install/post/otherpkgs/centos7/x86_64/
-
 #----------------------------------------------------------------------------------------
-# Generate images
-#----------------------------------------------------------------------------------------
-(genimage centos7-x86_64-netboot-trinity; packimage centos7-x86_64-netboot-trinity) &
-(genimage centos7-x86_64-netboot-nova; packimage centos7-x86_64-netboot-nova) &
-
-#----------------------------------------------------------------------------------------
-# Build the Trinity container
+# Get the Trinity containers
 #----------------------------------------------------------------------------------------
 systemctl start docker
 systemctl start docker-registry
@@ -90,5 +82,4 @@ else
 fi
 docker push controller:5050/trinity &
 
-wait 
 echo "$0 finished @ $(date)" >> /var/log/postinstall.log
