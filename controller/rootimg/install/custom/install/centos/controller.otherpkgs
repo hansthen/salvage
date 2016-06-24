@@ -9,6 +9,7 @@ perl-JSON
 docker
 docker-registry
 epel-release
+centos-release-openstack-liberty
 
 #NEW_INSTALL_LIST#
 

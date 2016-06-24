@@ -11,63 +11,15 @@
 #--------------------------------------------------------------------------------------
 
 # wait for pacemaker to setup controller's floating ip
-while ! ping -c1 controller.cluster &>/dev/null; do :; done
-
-# determine if a master is used to install this node:
-if [ ! -z $SITEMASTER ]; then
-    echo master is present
-    echo "Creating installation tree"
-    source /etc/profile.d/xcat.sh
-    copycds -n centos7 -o $(ls -cr /tmp/trinity/iso/*.iso | head -1) > /dev/null
-    XCAT_VERSION=$(lsxcatd -a | awk -F '[ .]' '/^Version/ {printf "%s.%s", $2, $3}')
-else
-    echo No master found, checking for a git repository.
-    SCRIPT=$(readlink -f $0)
-    SCRIPTDIR=$(dirname $SCRIPT)
-    REPODIR=$(readlink -f $SCRIPTDIR/../../../../)
-    echo Found repository in $REPODIR
-    cp -Lrv --preserve $REPODIR /tmp
-
-    # Fix #379
-    cd $REPODIR
-    (git branch | grep "*"; git rev-parse --short HEAD; git status --porcelain) > /tmp/trinity/version
-    cd -
-
-    XCAT_VERSION=2.11
-    # setup repositories
-    yum -y -q install $(grep -v ^# $REPODIR/controller/rootimg/install/custom/install/centos/controller.pkglist)
-    yum -y -q install epel-release
-    yum -y -q install http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm
-    yum -y -q install https://repos.fedorapeople.org/repos/openstack/openstack-liberty/rdo-release-liberty-1.noarch.rpm
-    wget --no-check-certificate https://xcat.org/files/xcat/repos/yum/${XCAT_VERSION}/xcat-core/xCAT-core.repo \
-         -O /etc/yum.repos.d/xCAT-core.repo
-    wget --no-check-certificate https://xcat.org/files/xcat/repos/yum/xcat-dep/rh7/x86_64/xCAT-dep.repo -O /etc/yum.repos.d/xCAT-dep.repo
-    yum -y -q install $(grep -v ^# $REPODIR/controller/rootimg/install/custom/install/centos/controller.otherpkgs)
-    source /etc/profile.d/xcat.sh
-    mkdir -p /tmp/trinity/iso
-    echo Downloading cd, this may take a while
-    wget -c http://mirror.denit.net/centos/7/isos/x86_64/CentOS-7-x86_64-Everything-1511.iso \
-         -P /tmp/trinity/iso/
-
-    echo "Creating installation tree"
-    copycds -n centos7 -o $(ls -cr /tmp/trinity/iso/*.iso | head -1) > /dev/null
-fi
-
-#----------------------------------------------------------------------------------
-# create runimages
-#--------------------------------------------------------------------------------------
-if [[ -d /install/runimages ]]; then
-    for file in $(ls /install/runimages); do
-        if [ -d /install/runimages/${file} ]; then 
-            tar czf /install/runimages/${file}.tgz -C /install/runimages/${file}/ .
-        fi
-    done
-fi
+while ! ping -c1 controller.cluster &>/dev/null; do 
+    echo "waiting for controller.cluster to become available";
+    sleep 1;
+done
+source /etc/profile.d/xcat.sh
 
 #--------------------------------------------------------------------------------------
 # copy default database configuration
 #--------------------------------------------------------------------------------------
-source /etc/profile.d/xcat.sh
 mkdir -p /tmp/xcattables
 
 # FIXME: make these configurable
@@ -87,13 +39,12 @@ mknb x86_64
 makedhcp -n
 makehosts
 makedns -n
-cat /etc/named.conf
 makeconservercf
 
 #-------------------------------------------------------------------------------------
 # Copy the modules environment
 #-------------------------------------------------------------------------------------
-cp -rT /tmp/trinity/clustervision /trinity/clustervision &
+nohup cp -rT /tmp/trinity/clustervision /trinity/clustervision &
 cp /tmp/trinity/version /trinity/version
 if [[ -f /tmp/trinity/site ]]; then
     cp /tmp/trinity/site /trinity/site
@@ -102,24 +53,22 @@ fi
 #--------------------------------------------------------------------------------------
 # Setup local repository
 #--------------------------------------------------------------------------------------
+echo "Creating installation tree"
+XCAT_VERSION=$(lsxcatd -a | awk -F '[ .]' '/^Version/ {printf "%s.%s", $2, $3}')
+copycds -n centos7 -o $(ls -cr /tmp/trinity/iso/*.iso | head -1) > /dev/null
+
 mkdir -p /install/post/otherpkgs/centos7/x86_64
 
-# FIXME: check if we need this
 yum -y -q install epel-release
-yum -y -q install https://repos.fedorapeople.org/repos/openstack/openstack-liberty/rdo-release-liberty-1.noarch.rpm
 yum -y -q install http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm
-yum-config-manager --disable xcat-otherpkgs* local-centos* > /dev/null
 yum-config-manager --enable base epel extras updates openstack-liberty > /dev/null
-yum-config-manager --add-repo http://sourceforge.net/projects/xcat/files/yum/${XCAT_VERSION}/xcat-core/xCAT-core.repo > /dev/null
-yum-config-manager --add-repo http://sourceforge.net/projects/xcat/files/yum/xcat-dep/rh7/x86_64/xCAT-dep.repo > /dev/null
+yum-config-manager --add-repo https://xcat.org/files/xcat/repos/yum/${XCAT_VERSION}/xcat-core/xCAT-core.repo > /dev/null
+yum-config-manager --add-repo https://xcat.org/files/xcat/repos/yum/xcat-dep/rh7/x86_64/xCAT-dep.repo > /dev/null
+
+yum-config-manager --disable xcat-otherpkgs* local-centos* > /dev/null
 
 echo "Syncing repositories, this may take some time"
-if [ -z $SITEMASTER ]; then
-    reposync -n -r elrepo -r epel -r extras -r updates -r xcat-2-core -r xcat-dep -r openstack-liberty 
-        -p /install/post/otherpkgs/centos7/x86_64/ > /dev/null
-else
-    reposync -n -r xcat-otherpkgs0 -p /install/post/otherpkgs/centos7/x86_64/ > /dev/null
-fi
+reposync -n -r xcat-otherpkgs0 -p /install/post/otherpkgs/centos7/x86_64/ > /dev/null
 createrepo /install/post/otherpkgs/centos7/x86_64/
 
 #----------------------------------------------------------------------------------------

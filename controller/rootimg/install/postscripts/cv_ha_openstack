@@ -12,36 +12,13 @@
 #--------------------------------------------------------------------------
 
 set -x
-docker run --net=host --privileged=true \
-     --skip-grant-tables \
-     --name=galera_bootstrap controller:5050/galera \
-     --wsrep_cluster_address=gcomm:// \
-     --wsrep_cluster_name=trinity_db
-
-mysql=( mysql --protocol=tcp -uroot -psystem)
-for i in {300..0}; do
-    if echo 'SELECT 1' | "${mysql[@]}" &> /dev/null; then
-        break
-    fi
-    echo 'MySQL init process in progress...'
-    sleep 3
-done
-if [ "$i" = 0 ]; then
-    echo >&2 'MySQL init process failed.'
-    exit 1
-fi
-
-"${mysql[@]}" <<-EOSQL
-    SET @@SESSION.SQL_LOG_BIN=0;
-    use mysql;
-    update user set password=PASSWORD("system") where user='root';
-    flush privileges;
-EOSQL
-
-docker stop galera_bootstrap
+systemctl start docker
 systemctl start galera
+# extract the root password from the galera container
+password=$(docker exec galera cat /root/.mysql_secret | head -1 | awk '{print $NF}')
+docker exec galera mysql -uroot -p${password} -e "set password = password('${password}')"
 
-mysql=( mysql --protocol=tcp -uroot -psystem)
+mysql=( mysql --protocol=tcp -uroot -p${password})
 for i in {300..0}; do
     if echo 'SELECT 1' | "${mysql[@]}" &> /dev/null; then
         break
@@ -100,7 +77,12 @@ pcs cluster cib-push config
 #--------------------------------------------------------------------------
 
 # wait for slapd
-while :; do ldapsearch -x -b dc=local &>/dev/null; [[ $? != 255 ]] && break; sleep 1; done
+for i in {300..0}; do
+    ldapsearch -H ldap://localhost -x -b dc=local &>/dev/null; [[ $? != 255 ]] && break;
+    echo "Waiting for ldap to come up!"
+    sleep 1
+done
+[[ ${i} == 0 ]] && echo "Timeout waiting for ldap to come up"
 
 keystone_endpoint="http://controller.cluster:35357/v2.0"
 for i in {300..0}; do
