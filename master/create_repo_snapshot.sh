@@ -22,8 +22,8 @@ reposync -n -r epel -r base -r extras -r updates -r xcat-2-core -r xcat-dep \
 ln -sT /install/post/$DATE /install/post/otherpkgs
 mkdir -p /install/post/otherpkgs/centos7/x86_64/check_mk
 cd /install/post/otherpkgs/centos7/x86_64/check_mk
-wget https://mathias-kettner.de/download/check_mk-agent-1.2.4p5-1.noarch.rpm
-wget https://mathias-kettner.de/download/check_mk-agent-logwatch-1.2.4p5-1.noarch.rpm
+wget -c https://mathias-kettner.de/download/check_mk-agent-1.2.4p5-1.noarch.rpm
+wget -c https://mathias-kettner.de/download/check_mk-agent-logwatch-1.2.4p5-1.noarch.rpm
 cd -
 createrepo /install/post/otherpkgs/centos7/x86_64/
 
