@@ -10,9 +10,13 @@
 #--------------------------------------------------------------------------
 # Setup galera password and initial databases
 #--------------------------------------------------------------------------
-systemctl start galera
 
 set -x
+docker run --net=host --privileged=true \
+     --skip-grant-tables \
+     --name=galera_bootstrap controller:5050/galera \
+     --wsrep_cluster_address=gcomm:// \
+     --wsrep_cluster_name=trinity_db
 
 mysql=( mysql --protocol=tcp -uroot )
 for i in {300..0}; do
@@ -50,6 +54,8 @@ fi
     GRANT ALL PRIVILEGES ON cinder.* TO 'cinder'@'%'             IDENTIFIED BY 'system';
     FLUSH PRIVILEGES ;
 EOSQL
+docker stop galera_bootstrap
+systemctl start galera
 
 #--------------------------------------------------------------------------
 # Setup pacemaker
