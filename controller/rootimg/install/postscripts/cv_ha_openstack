@@ -15,22 +15,21 @@ set -x
 systemctl start docker
 systemctl start galera
 # extract the root password from the galera container
+sleep 2
 password=$(docker exec galera cat /root/.mysql_secret | head -1 | awk '{print $NF}')
-docker exec galera mysql -uroot -p${password} -e "set password = password('${password}')"
-
-mysql=( mysql --protocol=tcp -uroot -p${password})
 for i in {300..0}; do
-    if echo 'SELECT 1' | "${mysql[@]}" &> /dev/null; then
+    if docker exec galera mysqladmin -u root -p"${password}" password "system" &> /dev/null; then
         break
     fi
-    echo 'MySQL init process in progress...'
+    echo 'MySQL waiting to reset password . . .'
     sleep 3
 done
 if [ "$i" = 0 ]; then
-    echo >&2 'MySQL init process failed.'
+    echo >&2 'MySQL reset password failed.'
     exit 1
 fi
 
+mysql=( mysql --protocol=tcp -uroot -p${password})
 "${mysql[@]}" <<-EOSQL
     set @@session.sql_log_bin=0;
     create database keystone;
