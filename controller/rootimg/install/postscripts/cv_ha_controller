@@ -10,6 +10,7 @@
 
 
 drbdadm primary --force ha_disk
+ssh controller-2 drbdadm connect all
 mkfs -t ext4 /dev/drbd1
 
 #-------------------------------------------------------------------
