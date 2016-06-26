@@ -29,7 +29,7 @@ if [ "$i" = 0 ]; then
     exit 1
 fi
 
-mysql=( mysql --protocol=tcp -uroot -p${password})
+mysql=( mysql --protocol=tcp -uroot -psystem)
 "${mysql[@]}" <<-EOSQL
     set @@session.sql_log_bin=0;
     create database keystone;
