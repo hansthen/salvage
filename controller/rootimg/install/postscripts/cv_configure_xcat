@@ -12,7 +12,7 @@
 
 # wait for pacemaker to setup controller's floating ip
 while ! ping -c1 controller.cluster &>/dev/null; do 
-    echo "waiting for controller.cluster to become available";
+    echo "waiting for controller.cluster to become available @ $(date)";
     sleep 1;
 done
 source /etc/profile.d/xcat.sh
@@ -44,6 +44,7 @@ makeconservercf
 #-------------------------------------------------------------------------------------
 # Copy the modules environment
 #-------------------------------------------------------------------------------------
+echo "Start copy modules environment@ $(date)";
 nohup cp -rT /tmp/trinity/clustervision /trinity/clustervision &
 cp /tmp/trinity/version /trinity/version
 if [[ -f /tmp/trinity/site ]]; then
@@ -53,21 +54,22 @@ fi
 #--------------------------------------------------------------------------------------
 # Setup local repository
 #--------------------------------------------------------------------------------------
-echo "Creating installation tree"
+echo "Creating installation tree @ $(date)"
 XCAT_VERSION=$(lsxcatd -a | awk -F '[ .]' '/^Version/ {printf "%s.%s", $2, $3}')
 
 nohup bash -c "copycds -n centos7 -o $(ls -cr /tmp/trinity/iso/*.iso | head -1) > /dev/null ;\
-               mkdir -p /install/post/otherpkgs/centos7/x86_64 ;\
-               echo \"Syncing repositories, this may take some time\" ;\
-               reposync -n -r xcat-otherpkgs0 -p /install/post/otherpkgs/centos7/x86_64/ > /dev/null ;\
-               createrepo /install/post/otherpkgs/centos7/x86_64/" &
+    mkdir -p /install/post/otherpkgs/centos7/x86_64 ;\
+    echo \"Syncing repositories, this may take some time\" ;\
+    reposync -n -r xcat-otherpkgs0 -p /install/post/otherpkgs/centos7/x86_64/ > /dev/null ;\
+    createrepo /install/post/otherpkgs/centos7/x86_64/ ;\
+    yum -y -q install epel-release ;\
+    yum -y -q install http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm ;\
+    yum-config-manager --add-repo https://xcat.org/files/xcat/repos/yum/${XCAT_VERSION}/xcat-core/xCAT-core.repo ;\
+    yum-config-manager --add-repo https://xcat.org/files/xcat/repos/yum/xcat-dep/rh7/x86_64/xCAT-dep.repo ;\
+    yum-config-manager --disable base centos-openstack-liberty elrepo epel extras updates xcat-2-core xcat-dep ;\
+    sed -i "s/192.168.1.254/controller/" /etc/yum.repos.d/* ;\ 
+    echo repo creation finished @ \$(date) >> /var/log/postinstall.log" <&- > /dev/null 2>&1 &
 
-yum -y -q install epel-release
-yum -y -q install http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm
-yum-config-manager --enable base epel extras updates openstack-liberty > /dev/null
-yum-config-manager --add-repo https://xcat.org/files/xcat/repos/yum/${XCAT_VERSION}/xcat-core/xCAT-core.repo > /dev/null
-yum-config-manager --add-repo https://xcat.org/files/xcat/repos/yum/xcat-dep/rh7/x86_64/xCAT-dep.repo > /dev/null
-yum-config-manager --disable xcat-otherpkgs* local-centos* > /dev/null
 
 #----------------------------------------------------------------------------------------
 # Get the Trinity containers
