@@ -11,6 +11,10 @@ docker-registry
 epel-release
 centos-release-openstack-liberty
 
+# reduired for ldap integration
+sssd
+authconfig
+
 #NEW_INSTALL_LIST#
 
 openstack-selinux
@@ -22,6 +26,8 @@ sysfsutils
 
 libvirt-daemon-config-nwfilter
 libvirt-daemon-driver-nwfilter
+
+#NEW_INSTALL_LIST#
 
 python-openstackclient
 python-keystoneclient
