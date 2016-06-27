@@ -66,25 +66,6 @@ fi
 #----------------------------------------------------------------------------
 # Setup SSSD
 #----------------------------------------------------------------------------
-# append our config to the ldap nameserver demon
-cat >> /etc/nslcd.conf << EOF 
-uri ldap://localhost
-ssl no
-tls_cacertdir /etc/openldap/cacerts
-base group  ou=Group,dc=cluster
-base passwd ou=People,dc=cluster
-base shadow ou=People,dc=cluster
-EOF
-
-# configure the ldap server. Not sure this is needed.
-cat >> /etc/pam_ldap.conf << EOF
-uri ldap://localhost/
-base dc=cluster
-ssl no
-tls_cacertdir /etc/openldap/cacerts
-pam_password md5
-EOF
-
 chmod 600 /etc/sssd/sssd.conf
 systemctl enable sssd
 systemctl start sssd

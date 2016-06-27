@@ -75,12 +75,13 @@ pcs cluster cib-push config
 #--------------------------------------------------------------------------
 
 # wait for slapd
-for i in {300..0}; do
+systemctl restart slapd
+while : ; do
     ldapsearch -H ldap://localhost -x -b dc=local &>/dev/null; [[ $? != 255 ]] && break;
     echo "Waiting for ldap to come up!"
     sleep 1
 done
-[[ ${i} == 0 ]] && echo "Timeout waiting for ldap to come up"
+#[[ ${i} == 0 ]] && echo "Timeout waiting for ldap to come up"
 
 keystone_endpoint="http://controller.cluster:35357/v2.0"
 for i in {300..0}; do

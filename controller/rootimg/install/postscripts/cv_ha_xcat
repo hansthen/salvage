@@ -13,9 +13,15 @@ systemctl stop docker
 systemctl stop nfs-server
 systemctl disable nfs-server
 
+while ! ip a | grep 10.141.255.254; do
+    echo "waiting for floating ip address to appear on the active node"
+    sleep 1
+done
+
 dev=$(ip a | grep 10.148.255.253 | awk '{print $5}')
 
 pcs cluster cib config
+
 pcs -f config resource create symlinks_xCAT ocf:tummy:drbdlinks \
     configfile="/drbd/xcat.conf" op monitor interval="31s" \
     op start timeout="2m"
@@ -28,6 +34,16 @@ pcs -f config resource create docker-registry systemd:docker-registry op monitor
 pcs -f config resource create slapd systemd:slapd op monitor interval="37s"
 pcs -f config resource create xCAT lsb:xcatd op monitor interval="42s"
 pcs -f config resource create conserver lsb:conserver op monitor interval="42s"
+
+pcs -f config resource create drbd ocf:linbit:drbd drbd_resource=ha_disk
+pcs -f config resource master ms_drbd drbd master-max="1" master-node-max="1" clone-max="2" clone-node-max="1" notify="true"
+pcs -f config resource create fs_drbd ocf:heartbeat:Filesystem device="/dev/drbd/by-res/ha_disk" directory="/drbd" fstype="ext4" op monitor interval="57s"
+
+# We specify that all services and groups should be on
+# the same node as where drbd keeps its master copy of the data.
+pcs -f config constraint colocation add fs_drbd with ms_drbd INFINITY with-rsc-role=Master
+pcs -f config constraint colocation add master ms_drbd with ip INFINITY
+pcs -f config constraint order promote ms_drbd then start fs_drbd
 
 pcs -f config resource clone named clone-max=2 clone-node-max=1 notify=false
 pcs -f config resource clone slapd clone-max=2 clone-node-max=1 notify=false
@@ -43,8 +59,6 @@ pcs -f config constraint order start symlinks_xCAT then start grp_xCAT
 pcs -f config constraint order start symlinks_xCAT then start conserver
 
 pcs cluster cib-push config
-
-echo pcs resource cleanup | at now +5 minutes
 
 systemctl enable pacemaker
 systemctl enable corosync

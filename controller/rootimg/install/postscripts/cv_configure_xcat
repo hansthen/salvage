@@ -9,13 +9,15 @@
 #--------------------------------------------------------------------------------------
 # Install Trinity stuff
 #--------------------------------------------------------------------------------------
-
 # wait for pacemaker to setup controller's floating ip
 while ! ping -c1 controller.cluster &>/dev/null; do 
-    echo "waiting for controller.cluster to become available @ $(date)";
-    sleep 1;
+    echo "waiting for controller.cluster to become available @ $(date)"
+    sleep 1
 done
-source /etc/profile.d/xcat.sh
+while ! source /etc/profile.d/xcat.sh; do
+    echo "unable to read xcat profile extenstions @ $(date)"
+    sleep 1
+done
 
 #--------------------------------------------------------------------------------------
 # copy default database configuration
@@ -45,7 +47,9 @@ makeconservercf
 # Copy the modules environment
 #-------------------------------------------------------------------------------------
 echo "Start copy modules environment@ $(date)";
-nohup cp -rT /tmp/trinity/clustervision /trinity/clustervision &
+nohup bash -c "cp -rT /tmp/trinity/clustervision /trinity/clustervision ;\
+    echo copy modules environment finished @ \$(date) >> /var/log/postinstall.log" <&- > /dev/null 2>&1 &
+
 cp /tmp/trinity/version /trinity/version
 if [[ -f /tmp/trinity/site ]]; then
     cp /tmp/trinity/site /trinity/site
@@ -57,7 +61,8 @@ fi
 echo "Creating installation tree @ $(date)"
 XCAT_VERSION=$(lsxcatd -a | awk -F '[ .]' '/^Version/ {printf "%s.%s", $2, $3}')
 
-nohup bash -c "copycds -n centos7 -o $(ls -cr /tmp/trinity/iso/*.iso | head -1)" <&- > /dev/null 2>&1 &
+nohup bash -c "copycds -n centos7 -o $(ls -cr /tmp/trinity/iso/*.iso | head -1);\
+    echo copycds finished @ \$(date) >> /var/log/postinstall.log " <&- > /dev/null 2>&1 &
 
 nohup bash -c "mkdir -p /install/post/otherpkgs/centos7/x86_64 ;\
     reposync -n -r xcat-otherpkgs0 -p /install/post/otherpkgs/centos7/x86_64/ ;\
@@ -67,18 +72,16 @@ nohup bash -c "mkdir -p /install/post/otherpkgs/centos7/x86_64 ;\
     yum-config-manager --add-repo https://xcat.org/files/xcat/repos/yum/${XCAT_VERSION}/xcat-core/xCAT-core.repo ;\
     yum-config-manager --add-repo https://xcat.org/files/xcat/repos/yum/xcat-dep/rh7/x86_64/xCAT-dep.repo ;\
     yum-config-manager --disable base centos-openstack-liberty elrepo epel extras updates xcat-2-core xcat-dep ;\
-    sed -i "s/192.168.1.254/controller/" /etc/yum.repos.d/* ;\ 
+    sed -i "s/192.168.1.254/controller/" /etc/yum.repos.d/* ;\
+    echo repo creation finished @ \$(date) >> /var/log/xcat/xcat.log ;\
     echo repo creation finished @ \$(date) >> /var/log/postinstall.log" <&- > /dev/null 2>&1 &
-
 
 #----------------------------------------------------------------------------------------
 # Push the trinity container to the registry
 #----------------------------------------------------------------------------------------
 systemctl start docker-registry
-while ! docker images | grep controller:5050/trinity; do
-    echo waiting for trinity image to appear
-    sleep 1
-done
-nohup docker push controller:5050/trinity <&- > /dev/null 2>&1 &
+nohup bash -c "while ! docker images | grep controller:5050/trinity; do sleep 20; done;\
+    docker push controller:5050/trinity ;\
+    echo trinity image pushed @ \$(date) >> /var/log/postinstall.log" <&- > /dev/null 2>&1 &
 
 echo "$0 finished @ $(date)" >> /var/log/postinstall.log

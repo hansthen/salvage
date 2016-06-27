@@ -15,7 +15,7 @@ centos-release-openstack-liberty
 sssd
 authconfig
 
-#NEW_INSTALL_LIST#
+#---------------NEW_INSTALL_LIST#
 
 openstack-selinux
 openstack-utils
@@ -27,7 +27,7 @@ sysfsutils
 libvirt-daemon-config-nwfilter
 libvirt-daemon-driver-nwfilter
 
-#NEW_INSTALL_LIST#
+#---------------NEW_INSTALL_LIST#
 
 python-openstackclient
 python-keystoneclient
@@ -43,7 +43,7 @@ python-bottle
 python-cherrypy
 python-tzlocal
 
-#NEW_INSTALL_LIST#
+#---------------NEW_INSTALL_LIST#
 #-- packages required for HA --#
 drbdlinks
 pacemaker
