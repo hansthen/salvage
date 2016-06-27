@@ -2,9 +2,10 @@
 #------------------------------------------------------------------
 # Setup glance service
 #------------------------------------------------------------------
-obol -H ldap://controller -w system user add glance --password system --cn glance --sn glance --givenName glance
+obol -H ldap://controller -w system user add glance --password system \
+       --cn glance --sn glance --givenName glance
 
-KEYSTONE="docker exec keystone openstack \
+KEYSTONE="openstack \
        --os-token system \
        --os-url http://controller:35357/v2.0"
 

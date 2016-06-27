@@ -2,8 +2,10 @@
 #------------------------------------------------------------------
 # Setup nova service
 #------------------------------------------------------------------
-obol -H ldap://controller -w system user add nova --password system --cn nova --sn nova --givenName nova
-KEYSTONE="docker exec keystone openstack \
+obol -H ldap://controller -w system user add nova --password system \
+       --cn nova --sn nova --givenName nova
+
+KEYSTONE="openstack \
        --os-token system \
        --os-url http://controller:35357/v2.0"
 

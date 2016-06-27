@@ -3,7 +3,7 @@ sleep 10s
 #------------------------------------------------------------------
 # Setup a helper variable
 #------------------------------------------------------------------
-KEYSTONE="docker exec keystone openstack \
+KEYSTONE="openstack \
        --os-token system \
        --os-url http://controller:35357/v2.0"
 
@@ -33,8 +33,10 @@ $KEYSTONE \
 #------------------------------------------------------------------
 # section 1
 
-obol -H ldap://controller -w system user add "admin" --password system --cn "admin" --sn "admin" --givenName "admin"
-obol -H ldap://controller -w system user add "trinity" --password system --cn "trinity" --sn "trinity" --givenName "trinity"
+obol -H ldap://controller -w system user add "admin" --password system \
+       --cn "admin" --sn "admin" --givenName "admin"
+obol -H ldap://controller -w system user add "trinity" --password system \
+       --cn "trinity" --sn "trinity" --givenName "trinity"
 
 $KEYSTONE \
        project create \
