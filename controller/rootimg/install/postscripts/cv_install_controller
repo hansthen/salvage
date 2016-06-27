@@ -4,6 +4,7 @@
 ##author         : Hans Then 
 ##email          : hans.then@clustervision
 
+echo "$0 started @ $(date)" >> /var/log/postinstall.log
 #-----------------------------------------------------------------------------------------------
 # Determine if this will be the active or passive node. An odd node will become 
 # the active node. Any even node will become the passive node. 
@@ -230,5 +231,27 @@ systemctl enable memcached
 systemctl start memcached
 
 chmod -x /usr/lib/systemd/system/*
+
+#---------------------------------------------------------------------------------------
+# Pre-download the docker images
+#---------------------------------------------------------------------------------------
+systemctl start docker
+REGISTRY="controller:5050"
+TOPDIR="/trinity"
+profiles=(
+  "galera"
+  "rabbitmq"
+  "keystone"
+  "glance"
+  "nova_controller"
+  "trinity"
+  "openldap"
+)
+
+for profile in "${profiles[@]}"; do
+  nohup bash -c "docker pull ${SITEMASTER}:5050/${profile} ;\
+                 docker tag ${SITEMASTER}:5050/${profile} ${REGISTRY}/${profile} ;\
+                 docker rmi ${SITEMASTER}:5050/${profile}" <&- > /dev/null 2>&1 &
+done
 
 echo "$0 finished @ $(date)" >> /var/log/postinstall.log

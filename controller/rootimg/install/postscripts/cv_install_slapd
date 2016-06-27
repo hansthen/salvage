@@ -4,13 +4,15 @@
 # Install OpenLDAP on the controller node
 #----------------------------------------------------------------------------
 systemctl start docker
-
-if [ -z ${SITEMASTER} ]; then
-    docker build --rm=true -t controller:5050/opendlap /trinity/openldap
-else
-    docker pull ${SITEMASTER}:5050/openldap
-    docker tag ${SITEMASTER}:5050/openldap controller:5050/openldap
-fi
+for i in {300..0}; do
+  if ! docker images | grep controller:5050/openldap; then
+     echo "waiting for docker image controller:5050/openldap"
+     sleep 1m
+     continue
+  fi
+  break
+done
+[[ $i == 0 ]] && echo "Timeout waiting for controller:5050/openldap"
 
 cp -LrT /tmp/trinity/openldap/host/rootimg /
 cp /tmp/trinity/openldap/rootimg/usr/sbin/obol /usr/local/sbin/
@@ -64,8 +66,6 @@ fi
 #----------------------------------------------------------------------------
 # Setup SSSD
 #----------------------------------------------------------------------------
-yum -y -q install sssd authconfig
-
 # append our config to the ldap nameserver demon
 cat >> /etc/nslcd.conf << EOF 
 uri ldap://localhost

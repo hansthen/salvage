@@ -57,10 +57,10 @@ fi
 echo "Creating installation tree @ $(date)"
 XCAT_VERSION=$(lsxcatd -a | awk -F '[ .]' '/^Version/ {printf "%s.%s", $2, $3}')
 
-nohup bash -c "copycds -n centos7 -o $(ls -cr /tmp/trinity/iso/*.iso | head -1) > /dev/null ;\
-    mkdir -p /install/post/otherpkgs/centos7/x86_64 ;\
-    echo \"Syncing repositories, this may take some time\" ;\
-    reposync -n -r xcat-otherpkgs0 -p /install/post/otherpkgs/centos7/x86_64/ > /dev/null ;\
+nohup bash -c "copycds -n centos7 -o $(ls -cr /tmp/trinity/iso/*.iso | head -1)" <&- > /dev/null 2>&1 &
+
+nohup bash -c "mkdir -p /install/post/otherpkgs/centos7/x86_64 ;\
+    reposync -n -r xcat-otherpkgs0 -p /install/post/otherpkgs/centos7/x86_64/ ;\
     createrepo /install/post/otherpkgs/centos7/x86_64/ ;\
     yum -y -q install epel-release ;\
     yum -y -q install http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm ;\
@@ -72,16 +72,13 @@ nohup bash -c "copycds -n centos7 -o $(ls -cr /tmp/trinity/iso/*.iso | head -1) 
 
 
 #----------------------------------------------------------------------------------------
-# Get the Trinity containers
+# Push the trinity container to the registry
 #----------------------------------------------------------------------------------------
-systemctl start docker
 systemctl start docker-registry
-if [ -z ${SITEMASTER} ]; then
-    docker build -t controller:5050/trinity /trinity/container
-else
-    docker pull ${SITEMASTER}:5050/trinity
-    docker tag ${SITEMASTER}:5050/trinity controller:5050/trinity
-fi
-docker push controller:5050/trinity &
+while ! docker images | grep controller:5050/trinity; do
+    echo waiting for trinity image to appear
+    sleep 1
+done
+nohup docker push controller:5050/trinity <&- > /dev/null 2>&1 &
 
 echo "$0 finished @ $(date)" >> /var/log/postinstall.log

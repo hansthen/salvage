@@ -11,7 +11,21 @@
 
 drbdadm primary --force ha_disk
 ssh controller-2 drbdadm connect all
+drbdadm connect all
+
 mkfs -t ext4 /dev/drbd1
+
+#rm /etc/httpd/logs ; ln -s /var/log/httpd /etc/httpd/logs
+#rm /etc/httpd/modules ; ln -s /usr/lib64/httpd/modules /etc/httpd/modules
+#rm /etc/httpd/run ; ln -s /var/run/httpd /etc/httpd/run
+
+#mkdir -p /nfshome
+#cp /tmp/trinity/controller/rootimg/drbd/xcat.conf /drbd/xcat.conf
+#drbdlinks -c /drbd/xcat.conf initialize_shared_storage
+#drbdlinks -c /drbd/xcat.conf start
+
+drbdadm disk-options --resync-rate=110M --c-min-rate=0 ha_disk
+
 
 #-------------------------------------------------------------------
 # Now setup the common resources
@@ -29,19 +43,57 @@ pcs -f config resource defaults resource-stickiness=100
 # FIXME: we set this to false for now. Later in the installation process we will enable fencing.
 pcs -f config property set stonith-enabled=false
 
-pcs -f config resource create ip ocf:heartbeat:IPaddr2 ip="10.141.255.254" iflabel="xCAT" cidr_netmask="16" nic="$dev" op monitor interval="37s"
+pcs -f config resource create ip ocf:heartbeat:IPaddr2 ip="10.141.255.254" \
+       iflabel="xCAT" cidr_netmask="16" nic="$dev" op monitor interval="37s"
+
 pcs -f config resource create drbd ocf:linbit:drbd drbd_resource=ha_disk
 pcs -f config resource master ms_drbd drbd master-max="1" master-node-max="1" clone-max="2" clone-node-max="1" notify="true"
-pcs -f config resource create fs_drbd ocf:heartbeat:Filesystem device="/dev/drbd/by-res/ha_disk" directory="/drbd" fstype="ext4" op monitor interval="57s"
-
-# We specify that all services and groups should be on
-# the same node as where drbd keeps its master copy of the data.
-pcs -f config constraint colocation add fs_drbd with ms_drbd INFINITY with-rsc-role=Master
-pcs -f config constraint colocation add master ms_drbd with ip INFINITY
-pcs -f config constraint order promote ms_drbd then start fs_drbd
+pcs -f config resource create fs_drbd ocf:heartbeat:Filesystem \
+       device="/dev/drbd/by-res/ha_disk" directory="/drbd" fstype="ext4" op monitor interval="57s"
 
 # Give the first node a slight preference.
 pcs -f config constraint location ip prefers controller-1.cluster=50
 
+# We specify that all services and groups should be on
+# the same node as where drbd keeps its master copy of the data.
+pcs -f config constraint colocation add fs_drbd with ms_drbd INFINITY with-rsc-role=Master
+pcs -f config constraint colocation add ip with ms_drbd INFINITY with-rsc-role=Master
+pcs -f config constraint colocation add master ms_drbd with ip INFINITY
+pcs -f config constraint order promote ms_drbd then start fs_drbd
+
 pcs cluster cib-push config
 
+sleep 3m 
+pcs status
+
+while ! mount | grep drdb; do
+   sleep 5
+   echo waiting for drbd to be mounted.
+done
+ 
+#ip a a 10.141.255.254/16 dev $dev
+#pcs property set maintenance-mode=true
+
+rm /etc/httpd/logs ; ln -s /var/log/httpd /etc/httpd/logs
+rm /etc/httpd/modules ; ln -s /usr/lib64/httpd/modules /etc/httpd/modules
+rm /etc/httpd/run ; ln -s /var/run/httpd /etc/httpd/run
+
+mkdir -p /nfshome
+cp /tmp/trinity/controller/rootimg/drbd/xcat.conf /drbd/xcat.conf
+drbdlinks -c /drbd/xcat.conf initialize_shared_storage
+drbdlinks -c /drbd/xcat.conf start
+
+sleep 3m
+pcs cluster cib config
+pcs -f config resource create symlinks_xCAT ocf:tummy:drbdlinks \
+    configfile="/drbd/xcat.conf" op monitor interval="31s" \
+    op start timeout="2m"
+pcs -f config constraint colocation add symlinks_xCAT fs_drbd
+pcs -f config constraint order start fs_drbd then start symlinks_xCAT
+
+pcs cluster cib-push config
+
+sleep 3m
+pcs status
+
+echo "$0 finished @ $(date)" >> /var/log/postinstall.log

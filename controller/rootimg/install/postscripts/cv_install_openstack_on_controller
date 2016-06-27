@@ -23,16 +23,13 @@ profiles=(
   "glance"
   "nova_controller"        
 )
-keystone_endpoint="http://controller.cluster:35357/v2.0"
 
 for profile in "${profiles[@]}"; do
-  if [ -z ${SITEMASTER} ]; then
-      docker build --rm=true -t ${REGISTRY}/${profile} ${TOPDIR}/${profile}
-  else
-      docker pull ${SITEMASTER}:5050/${profile} 
-      docker tag ${SITEMASTER}:5050/${profile} ${REGISTRY}/${profile}
+  if ! docker images | grep ${REGISTRY}/${profile}; then
+     echo "waiting for docker image ${REGISTRY}/${profile}"
+     sleep 1
+     continue
   fi
-      
   cp -LrT /tmp/${TOPDIR}/${profile}/host/rootimg /
 done
 

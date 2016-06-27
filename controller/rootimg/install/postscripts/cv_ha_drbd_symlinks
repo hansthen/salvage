@@ -2,11 +2,8 @@
 ##description    : The second round of High Availability.
 ##                 This will setup:
 ##                 1. DRBD symlinks for the xCAT services (and docker-registry)
-##                 2. Pacemaker configuration for the xCAT services
 ##author         : Hans Then
 ##email          : hans.then@clustervision
-
-drbdadm primary --force ha_disk
 
 rm /etc/httpd/logs ; ln -s /var/log/httpd /etc/httpd/logs
 rm /etc/httpd/modules ; ln -s /usr/lib64/httpd/modules /etc/httpd/modules
@@ -17,6 +14,6 @@ cp /tmp/trinity/controller/rootimg/drbd/xcat.conf /drbd/xcat.conf
 drbdlinks -c /drbd/xcat.conf initialize_shared_storage
 drbdlinks -c /drbd/xcat.conf start
 
-drbdadm disk-options --resync-rate=110M ha_disk
+drbdadm disk-options --resync-rate=110M --c-min-rate=0 ha_disk
 
 echo "$0 finished @ $(date)" >> /var/log/postinstall.log
