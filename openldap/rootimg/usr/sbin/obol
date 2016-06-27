@@ -42,7 +42,6 @@ def user_add(b, username, cn, sn, givenName, password, shell, groups):
     conn.add_s(dn, add_record)
 
     # now add the user 
-    password = make_secret(password)
     dn = 'uid=%s,ou=People,%s' % (username, b)
 
     if not cn:
@@ -55,7 +54,6 @@ def user_add(b, username, cn, sn, givenName, password, shell, groups):
      ('uid', [username] ),
      ('cn', [cn] ),
      ('sn', [sn] ),
-     ('userPassword', [password] ), 
      ('loginShell', [shell] ),
      ('uidNumber', [uidNumber] ),
      ('gidNumber', [uidNumber] ),
@@ -63,6 +61,9 @@ def user_add(b, username, cn, sn, givenName, password, shell, groups):
     ]
     if givenName:
         add_record.append(('givenName', [givenName] ))
+    if password:
+        password = make_secret(password)
+        add_record.append(('userPassword', [password] ))
 
     conn.add_s(dn, add_record)
 
@@ -266,7 +267,7 @@ group_commands = groups.add_subparsers(dest='command')
 # Do the user commands
 command = user_commands.add_parser('add', help='add a user')
 command.add_argument('username')
-command.add_argument('--password', required=True) 
+command.add_argument('--password')
 command.add_argument('--cn', metavar="COMMON NAME")
 command.add_argument('--sn', metavar="SURNAME")
 command.add_argument('--givenName')
