@@ -56,17 +56,16 @@ def user_add(username, usernumber, cn, sn, givenName, password, shell, groups):
        conn.add_s(dn, add_record)
 
        # now add the user 
-       password = make_secret(password)
        dn = 'uid=%s,ou=People,dc=local' % username
 
        if not cn:
            cn = username
 
        add_record = [
-        ('objectclass', ['top','person', 'organizationalPerson', 'inetOrgPerson', 'posixAccount', 'shadowAccount']),
+        ('objectclass', ['top','person', 'organizationalPerson', 
+                         'inetOrgPerson', 'posixAccount', 'shadowAccount']),
         ('uid', [username] ),
         ('cn', [cn] ),
-        ('userPassword', [password] ), 
         ('loginShell', [shell] ),
         ('uidNumber', [uidNumber] ),
         ('gidNumber', [uidNumber] ),
@@ -76,6 +75,9 @@ def user_add(username, usernumber, cn, sn, givenName, password, shell, groups):
            add_record.append(('sn', [sn] ))
        if givenName:
            add_record.append(('givenName', [givenName] ))
+       if password:
+           password = make_secret(password)
+           add_record.append(('userPassword', [password] ))
 
        conn.add_s(dn, add_record)
 
@@ -102,7 +104,6 @@ def user_delete(username):
     try:
         for dn in dns:
              mod_attrs = [(ldap.MOD_DELETE, 'memberuid', username)]
-             #print dn, mod_attrs
              conn.modify_s(dn, mod_attrs)
     except Exception, e:
         print e
@@ -294,7 +295,7 @@ group_commands = groups.add_subparsers(dest='command')
 command = user_commands.add_parser('add', help='add a user')
 command.add_argument('username')
 command.add_argument('--usernumber')
-command.add_argument('--password', required=True) 
+command.add_argument('--password')
 command.add_argument('--cn', metavar="COMMON NAME")
 command.add_argument('--sn', metavar="SURNAME")
 command.add_argument('--givenName')
