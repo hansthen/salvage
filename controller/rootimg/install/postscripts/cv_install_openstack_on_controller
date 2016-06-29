@@ -24,13 +24,19 @@ profiles=(
   "nova_controller"        
 )
 
+while :; do
+    for profile in "${profiles[@]}"; do
+        if ! docker images | grep ${REGISTRY}/${profile}; then
+             echo "waiting for docker image ${REGISTRY}/${profile}"
+             sleep 1
+             continue 2
+        fi
+        break 2
+    done
+done
+
 for profile in "${profiles[@]}"; do
-  if ! docker images | grep ${REGISTRY}/${profile}; then
-     echo "waiting for docker image ${REGISTRY}/${profile}"
-     sleep 1
-     continue
-  fi
-  cp -LrT /tmp/${TOPDIR}/${profile}/host/rootimg /
+    cp -LrT /tmp/${TOPDIR}/${profile}/host/rootimg /
 done
 
 echo "$0 finished @ $(date)" >> /var/log/postinstall.log

@@ -251,7 +251,7 @@ profiles=(
 for profile in "${profiles[@]}"; do
   nohup bash -c "docker pull ${SITEMASTER}:5050/${profile} ;\
                  docker tag ${SITEMASTER}:5050/${profile} ${REGISTRY}/${profile} ;\
-                 docker rmi ${SITEMASTER}:5050/${profile}" <&- > /dev/null 2>&1 &
+                 docker rmi ${SITEMASTER}:5050/${profile}" <&- > /var/log/docker-images.log 2>&1 &
 done
 
 echo "$0 finished @ $(date)" >> /var/log/postinstall.log
