@@ -7,10 +7,7 @@
 #-------------------------------------------------------------------
 # Now setup the common resources
 #-------------------------------------------------------------------
-systemctl stop xcatd
-systemctl stop docker-registry
-systemctl stop docker
-systemctl stop nfs-server
+systemctl disable docker-registry
 systemctl disable nfs-server
 
 while ! ip a | grep 10.141.255.254; do

@@ -133,11 +133,6 @@ service iptables save
 ip route add 172.16.0.0/12 dev $ETH2
 echo "172.16.0.0/12 dev $ETH2" > /etc/sysconfig/network-scripts/route-${ETH2} 
 
-if ! systemctl restart network; then
-    sleep 3
-    systemctl start network
-fi
-
 setenforce 0
 sestatus
 
