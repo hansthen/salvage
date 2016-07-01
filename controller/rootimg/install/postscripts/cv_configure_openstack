@@ -47,8 +47,6 @@ mysql=( mysql --protocol=tcp -uroot -psystem)
 EOSQL
 
 # wait for slapd
-systemctl restart slapd
-systemctl start keystone
 while : ; do
     ldapsearch -H ldap://localhost -x -b dc=local &>/dev/null; [[ $? != 255 ]] && break;
     echo "Waiting for ldap to come up!"
@@ -56,6 +54,7 @@ while : ; do
 done
 #[[ ${i} == 0 ]] && echo "Timeout waiting for ldap to come up"
 
+systemctl start keystone
 keystone_endpoint="http://controller.cluster:35357/v2.0"
 for i in {300..0}; do
     if curl -s ${keystone_endpoint}; then 
@@ -70,35 +69,43 @@ for i in {300..0}; do
 done
 [[ ${i} == 0 ]] && echo "Timeout waiting for keystone to come up"
 
+# These do not really depend on keystone, but they do require a database connection.
 systemctl start glance
 systemctl start nova-controller
 
-#read ETH0 ETH1 ETH2 <<<$(ls /sys/class/net/ | grep "^e" | sort | head -3)
-ETH1=$(ip route get 8.8.8.8 | grep -oP 'dev \K\S+')
-ETH2=$(ip route get 10.141.0.0 | grep -oP 'dev \K\S+')
-
-BRIDGE="br100"
-PRI_NIC=${ETH2}
 source /etc/profile.d/xcat.sh
 sed -e "s/<TENANT>/admin/g" \
     -e "s/<USER>/admin/g" \
     -e "s/<PASSWORD>/system/g" \
     -e "s/<OPENSTACK>/controller/g" \
     /trinity/openstack/keystonerc > /root/keystonerc_admin
+
 chmod go-rw /root/keystonerc_admin
 scp /root/keystonerc_admin controller-2.cluster:/root/keystonerc_admin
 source /root/keystonerc_admin
 
+nova_endpoint="http://controller.cluster:8774/v2/"
+while :; do
+    curl -s ${nova_endpoint} && break;
+    sleep 10s
+done
+
 #-- Create the Flat Network
+
+#read ETH0 ETH1 ETH2 <<<$(ls /sys/class/net/ | grep "^e" | sort | head -3)
+ETH1=$(ip route get 8.8.8.8 | grep -oP 'dev \K\S+')
+ETH2=$(ip route get 10.141.0.0 | grep -oP 'dev \K\S+')
+BRIDGE="br100"
+PRI_NIC=${ETH2}
 
 NETWORK_LABEL="novanetwork"
 nova network-create \
-       --fixed-range-v4 192.168.32.0/24 \
-       --fixed-cidr 192.168.32.0/24 \
-       --bridge-interface ${PRI_NIC} \
-       --multi-host T \
-       --bridge ${BRIDGE} \
-       ${NETWORK_LABEL}
+    --fixed-range-v4 192.168.32.0/24 \
+    --fixed-cidr 192.168.32.0/24 \
+    --bridge-interface ${PRI_NIC} \
+    --multi-host T \
+    --bridge ${BRIDGE} \
+    ${NETWORK_LABEL}
 
 #-- Download the base login node image (CentOS cloud image) and upload it to glance
 # We have a sitemaster, copy from master node.

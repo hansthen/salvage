@@ -42,6 +42,8 @@ makedhcp -n
 makehosts
 makedns -n
 makeconservercf
+#------------- Diagnostics ---------------
+tabdump site
 
 #-------------------------------------------------------------------------------------
 # Copy the modules environment

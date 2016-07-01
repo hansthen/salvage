@@ -36,9 +36,6 @@ done
 
 for profile in "${profiles[@]}"; do
     cp -LrT /tmp/${TOPDIR}/${profile}/host/rootimg /
-    systemctl start ${profile/_/-/}
-    sleep 1
-    systemctl status ${profile/_/-/}
 done
 
 echo "$0 finished @ $(date)" >> /var/log/postinstall.log

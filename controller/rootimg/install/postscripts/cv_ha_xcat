@@ -7,6 +7,9 @@
 #-------------------------------------------------------------------
 # Now setup the common resources
 #-------------------------------------------------------------------
+
+source /etc/profile.d/xcat.sh
+
 systemctl disable docker-registry
 systemctl disable nfs-server
 
@@ -19,9 +22,13 @@ dev=$(ip a | grep 10.148.255.253 | awk '{print $5}')
 
 pcs cluster cib config
 
+
 pcs -f config resource create symlinks_xCAT ocf:tummy:drbdlinks \
     configfile="/drbd/xcat.conf" op monitor interval="31s" \
     op start timeout="2m"
+
+pcs cluster cib-push config
+sleep 10
 
 pcs -f config resource create httpd systemd:httpd op monitor interval="37s"
 pcs -f config resource create dhcpd systemd:dhcpd op monitor interval="37s"
@@ -32,9 +39,13 @@ pcs -f config resource create slapd systemd:slapd op monitor interval="37s"
 pcs -f config resource create xCAT lsb:xcatd op monitor interval="42s"
 pcs -f config resource create conserver lsb:conserver op monitor interval="42s"
 
+pcs cluster cib-push config
+
 pcs -f config resource create drbd ocf:linbit:drbd drbd_resource=ha_disk
 pcs -f config resource master ms_drbd drbd master-max="1" master-node-max="1" clone-max="2" clone-node-max="1" notify="true"
 pcs -f config resource create fs_drbd ocf:heartbeat:Filesystem device="/dev/drbd/by-res/ha_disk" directory="/drbd" fstype="ext4" op monitor interval="57s"
+
+pcs cluster cib-push config
 
 # We specify that all services and groups should be on
 # the same node as where drbd keeps its master copy of the data.
@@ -50,15 +61,14 @@ pcs -f config constraint colocation add symlinks_xCAT fs_drbd
 pcs -f config constraint colocation add grp_xCAT fs_drbd 
 pcs -f config constraint colocation add conserver grp_xCAT 500
 
+pcs cluster cib-push config
+
 pcs -f config constraint order start fs_drbd then start symlinks_xCAT
 pcs -f config constraint order start ip then start named-clone
 pcs -f config constraint order start symlinks_xCAT then start grp_xCAT
 pcs -f config constraint order start symlinks_xCAT then start conserver
 
 pcs cluster cib-push config
-
-systemctl enable pacemaker
-systemctl enable corosync
 
 for i in {300..0}; do
     if pcs resource | grep "lsb:xcatd" | grep "Started"; then
@@ -67,15 +77,19 @@ for i in {300..0}; do
     echo waiting for xCAT to come up
     sleep 10
 done
-
 if [[ $i = 0 ]]; then
     echo Timeout starting xCAT
     exit 1
 fi
 
-# Hacky workaround
-source /etc/profile.d/xcat.sh
-makedns -n
-cat /etc/named.conf
+echo ----- Diagnostics ------
+
+tabdump site
+cat /proc/drbd
+pcs status
+mount 
+ls /drbd
+
+echo ----- End --------------
 
 echo "$0 finished @ $(date)" >> /var/log/postinstall.log
