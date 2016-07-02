@@ -1,0 +1,7 @@
+docker build -t ldap .
+docker stop ldap
+docker rm ldap
+docker run -d -v $(pwd)/setup.ldif:/startup.d/setup.ldif --net=host --name=ldap ldap
+#docker run -i -t -v $(pwd)/setup.ldif:/startup.d/setup.ldif --net=host --name=ldap ldap /bin/bash
+docker exec -it ldap /bin/bash
+

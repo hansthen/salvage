@@ -1,8 +1,0 @@
-#!/bin/bash
-
-ID=$(echo $HOST | egrep -o '[[:digit:]]*' | head -n1)
-let PROVIDER_ID=ID==1?2:1;
-
-sed -i "s,<ID>,$ID," /etc/openldap/cv_synrepl.conf
-sed -i "s,<PROVIDER>,ldap://controller-$PROVIDER_ID.cluster," /etc/openldap/cv_synrepl.conf
-
