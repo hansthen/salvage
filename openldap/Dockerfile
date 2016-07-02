@@ -3,6 +3,9 @@ MAINTAINER hicham.amrati@clustervision.com
 
 RUN yum -y install openldap-servers openldap-clients nc
 RUN cp /usr/share/openldap-servers/DB_CONFIG.example /var/lib/ldap/DB_CONFIG
+RUN mkdir /var/lib/ldap-2
+RUN cp /usr/share/openldap-servers/DB_CONFIG.example /var/lib/ldap-2/DB_CONFIG
+RUN chown -R ldap.ldap /var/lib/ldap-2
 
 COPY rootimg /
 RUN chown -R ldap. /etc/openldap/ && \
@@ -13,6 +16,7 @@ ADD https://raw.githubusercontent.com/hansthen/asynchronous.bash/master/asynchro
 
 RUN mkdir /startup.d
 VOLUME /var/lib/ldap
+VOLUME /var/lib/ldap-2
 
 EXPOSE 389
 EXPOSE 636
