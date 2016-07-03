@@ -1,23 +1,27 @@
-dn: dc=local
+dn: dc=root
+dc: root
+objectClass: domain
+
+dn: dc=local,dc=root
 dc: local
 objectClass: domain
 
-dn: ou=People,dc=local
+dn: ou=People,dc=local,dc=root
 ou: People
 objectClass: top
 objectClass: organizationalUnit
 
-dn: ou=Group,dc=local
+dn: ou=Group,dc=local,dc=root
 ou: Group
 objectClass: top
 objectClass: organizationalUnit
 
-dn: cn=uid,dc=local
+dn: cn=uid,dc=local,dc=root
 cn: uid
 objectClass: uidNext
 uidNumber: 1050
 
-dn: cn=gid,dc=local
+dn: cn=gid,dc=local,dc=root
 cn: gid
 objectClass: uidNext
 uidNumber: 150

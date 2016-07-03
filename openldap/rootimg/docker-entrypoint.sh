@@ -3,6 +3,8 @@
 
 if [[ ! -d /etc/openldap/slapd.d/cn=config ]]; then
     slaptest -v -f /etc/openldap/slapd.conf -F /etc/openldap/slapd.d
+else
+    echo "found previous configuration, will not overwrite"
 fi
 chown -R ldap.ldap /var/lib/ldap
 chown -R ldap.ldap /etc/openldap/slapd.d
@@ -14,7 +16,7 @@ if [[ -d /startup.d ]]; then
     done
     for f in /startup.d/*.ldif; do
         echo \$f /var/log/startup.log
-        ldapmodify -a -x -D cn=Manager,dc=local -w system -f "\$f" >> /var/log/startup.log 2>&1
+        ldapmodify -a -x -D cn=Manager,dc=root -w system -f "\$f" >> /var/log/startup.log 2>&1
     done
 fi
 END
