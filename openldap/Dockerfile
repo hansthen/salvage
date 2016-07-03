@@ -23,5 +23,5 @@ EXPOSE 636
 
 RUN chmod +x /docker-entrypoint.sh
 
-CMD ["slapd", "-u", "ldap", "-d1"]
+CMD ["slapd", "-u", "ldap", "-h", "ldapi:/// ldap:///", "-d1"]
 ENTRYPOINT ["/docker-entrypoint.sh"]
