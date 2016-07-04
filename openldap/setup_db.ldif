@@ -1,0 +1,21 @@
+# BDB definition for example.com
+dn: olcDatabase=hdb,cn=config
+objectClass: olcDatabaseConfig
+objectClass: olcHdbConfig
+olcDatabase: hdb
+olcSuffix: dc=root
+olcDbDirectory: /var/lib/ldap
+olcRootDN: cn=Manager,dc=root
+olcRootPW: secret
+olcDbIndex: uid,uidNumber,gidNumber,gecos pres,eq
+olcDbIndex: cn,sn pres,eq,approx,sub
+olcDbIndex: objectClass eq
+olcAccess: to attrs=userPassword
+  by self write
+  by anonymous auth
+  by dn.base="cn=Admin,dc=example,dc=com" write
+  by * none
+olcAccess: to *
+  by self write
+  by dn.base="cn=Admin,dc=example,dc=com" write
+  by * read

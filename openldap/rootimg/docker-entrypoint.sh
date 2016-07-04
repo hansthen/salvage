@@ -2,6 +2,12 @@
 . /var/lib/asynchronous.bash
 
 if [[ ! -d /etc/openldap/slapd.d/cn=config ]]; then
+    if [[ -z "$PASSWORD" ]]; then
+        PASSWORD=$(date|md5sum|cut -c1-30)
+    fi
+    echo "$PASSWORD" > /password
+    chmod 600 /password
+    sed -i -e "s/rootpw.*$/rootpw ${PASSWORD}/" /etc/openldap/root.conf
     slaptest -v -f /etc/openldap/slapd.conf -F /etc/openldap/slapd.d
 else
     echo "found previous configuration, will not overwrite"
@@ -16,7 +22,7 @@ if [[ -d /startup.d ]]; then
     done
     for f in /startup.d/*.ldif; do
         echo \$f /var/log/startup.log
-        ldapmodify -a -x -D cn=Manager,dc=root -w system -f "\$f" >> /var/log/startup.log 2>&1
+        ldapmodify -a -Y EXTERNAL -H ldapi:/// -f "\$f" >> /var/log/startup.log 2>&1
     done
 fi
 END
